@@ -5,9 +5,9 @@ namespace ProcessMemory
     /// <summary>
     /// Actually does the same code as BitConverter except it doesn't check endianness, bother with contracts or emit CLS compliance. It just does the bit shifting.
     /// </summary>
-    internal static class HighPerfBitConverter
+    public static class HighPerfBitConverter
     {
-        internal static unsafe short ToInt16(byte[] recordData, int offset)
+        public static unsafe short ToInt16(byte[] recordData, int offset)
         {
             if (recordData.Length >= offset + 2)
                 fixed (byte* b = &recordData[offset])
@@ -16,9 +16,9 @@ namespace ProcessMemory
                 throw new IndexOutOfRangeException();
         }
 
-        internal static ushort ToUInt16(byte[] recordData, int offset) => (ushort)ToInt16(recordData, offset);
+        public static ushort ToUInt16(byte[] recordData, int offset) => (ushort)ToInt16(recordData, offset);
 
-        internal static unsafe int ToInt32(byte[] recordData, int offset)
+        public static unsafe int ToInt32(byte[] recordData, int offset)
         {
             if (recordData.Length >= offset + 4)
                 fixed (byte* b = &recordData[offset])
@@ -27,9 +27,9 @@ namespace ProcessMemory
                 throw new IndexOutOfRangeException();
         }
 
-        internal static uint ToUInt32(byte[] recordData, int offset) => (uint)ToInt32(recordData, offset);
+        public static uint ToUInt32(byte[] recordData, int offset) => (uint)ToInt32(recordData, offset);
 
-        internal static unsafe long ToInt64(byte[] recordData, int offset)
+        public static unsafe long ToInt64(byte[] recordData, int offset)
         {
             if (recordData.Length >= offset + 8)
             {
@@ -44,6 +44,6 @@ namespace ProcessMemory
                 throw new IndexOutOfRangeException();
         }
 
-        internal static ulong ToUInt64(byte[] recordData, int offset) => (ulong)ToInt64(recordData, offset);
+        public static ulong ToUInt64(byte[] recordData, int offset) => (ulong)ToInt64(recordData, offset);
     }
 }
