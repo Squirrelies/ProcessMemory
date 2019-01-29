@@ -6,22 +6,22 @@ namespace ProcessMemory
     internal static class PInvoke
     {
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern UIntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, uint processId);
+        internal static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool CloseHandle(UIntPtr hObject);
+        internal static extern bool CloseHandle(IntPtr hObject);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool ReadProcessMemory(UIntPtr hProcess, ulong lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+        internal static extern bool ReadProcessMemory(IntPtr hProcess, long lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool WriteProcessMemory(UIntPtr hProcess, ulong lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+        internal static extern bool WriteProcessMemory(IntPtr hProcess, long lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
 
         [DllImport("kernel32.dll")]
         internal static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
 
         [DllImport("kernel32.dll")]
-        internal static extern int VirtualQueryEx(UIntPtr hProcess, UIntPtr lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, UIntPtr dwLength);
+        internal static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, IntPtr dwLength);
 
         [Flags]
         public enum AllocationProtect : uint
@@ -88,15 +88,15 @@ namespace ProcessMemory
         [StructLayout(LayoutKind.Sequential)]
         public struct MEMORY_BASIC_INFORMATION64 // 48
         {
-            public UIntPtr BaseAddress; // 8
-            public UIntPtr AllocationBase; // 8
+            public IntPtr BaseAddress; // 8
+            public IntPtr AllocationBase; // 8
             public AllocationProtect AllocationProtect; // 4
-            public uint __alignment1; // 4
-            public UIntPtr RegionSize; // 8
+            public int __alignment1; // 4
+            public IntPtr RegionSize; // 8
             public MemoryFlags State; // 4
             public AllocationProtect Protect; // 4
             public MemoryFlags Type; // 4
-            public uint __alignment2; // 4
+            public int __alignment2; // 4
         }
 
         public struct SYSTEM_INFO
@@ -104,9 +104,9 @@ namespace ProcessMemory
             public ushort processorArchitecture;
             public ushort reserved;
             public uint pageSize;
-            public UIntPtr minimumApplicationAddress;
-            public UIntPtr maximumApplicationAddress;
-            public UIntPtr activeProcessorMask;
+            public IntPtr minimumApplicationAddress;
+            public IntPtr maximumApplicationAddress;
+            public IntPtr activeProcessorMask;
             public uint numberOfProcessors;
             public uint processorType;
             public uint allocationGranularity;
