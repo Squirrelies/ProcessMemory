@@ -58,6 +58,7 @@ namespace ProcessMemory
             Addresses = local.AsReadOnly();
         }
 
+        public byte[] DerefByteArray(long offset, int size) => this.memoryAccess.GetByteArrayAt(Addresses[Addresses.Count - 1] + offset, size);
         public sbyte DerefSByte(long offset) => this.memoryAccess.GetSByteAt(Addresses[Addresses.Count - 1] + offset);
         public byte DerefByte(long offset) => this.memoryAccess.GetByteAt(Addresses[Addresses.Count - 1] + offset);
         public short DerefShort(long offset) => this.memoryAccess.GetShortAt(Addresses[Addresses.Count - 1] + offset);
