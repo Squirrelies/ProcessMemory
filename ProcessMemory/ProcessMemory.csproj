@@ -21,7 +21,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == '' Or '$(BuildingInsideVisualStudio)' == 'true'">
     <Exec Command="&quot;C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x64\signtool.exe&quot; sign /tr &quot;http://timestamp.digicert.com&quot; /td SHA1 /n &quot;Travis J Gutjahr&quot; /sm /fd SHA1 &quot;$(TargetDir)\ProcessMemory.dll&quot;&#xD;&#xA;&quot;C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x64\signtool.exe&quot; sign /tr &quot;http://timestamp.digicert.com&quot; /td SHA256 /n &quot;Travis J Gutjahr&quot; /sm /fd SHA256 /as &quot;$(TargetDir)\ProcessMemory.dll&quot;&#xD;&#xA;&quot;C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x64\signtool.exe&quot; sign /tr &quot;http://timestamp.digicert.com&quot; /td SHA512 /n &quot;Travis J Gutjahr&quot; /sm /fd SHA512 /as &quot;$(TargetDir)\ProcessMemory.dll&quot;&#xD;&#xA;" />
   </Target>
 
