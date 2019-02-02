@@ -10,6 +10,15 @@ namespace ProcessMemory
         private int[] offsets32;
         private long[] offsets64;
 
+        public MultilevelPointer(ProcessMemory memoryAccess, long baseAddress)
+        {
+            this.memoryAccess = memoryAccess;
+            this.BaseAddress = baseAddress;
+            this.offsets32 = null;
+            this.offsets64 = null;
+            UpdatePointers();
+        }
+
         public MultilevelPointer(ProcessMemory memoryAccess, long baseAddress, params int[] offsets)
         {
             this.memoryAccess = memoryAccess;
@@ -34,6 +43,8 @@ namespace ProcessMemory
                 UpdatePointers32();
             else if (offsets64 != null)
                 UpdatePointers64();
+            else
+                Addresses = new List<long>() { this.memoryAccess.GetLongAt(this.BaseAddress) }.AsReadOnly();
         }
 
         private void UpdatePointers32()
