@@ -5,23 +5,55 @@ namespace ProcessMemory
 {
     internal static class PInvoke
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool CloseHandle(IntPtr hObject);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "QueryFullProcessImageNameW")]
+        internal static extern bool QueryFullProcessImageNameW(IntPtr hProcess, int dwFlags, [Out] char[] lpExeName, ref int lpdwSize);
+
+        [DllImport("psapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static unsafe extern bool EnumProcessModulesEx(IntPtr hProcess, [Out] IntPtr* lphModule, int cb, out int lpcbNeeded, ListModules dwFilterFlag = ListModules.LIST_MODULES_ALL);
+
+        [DllImport("psapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern int GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] char[] lpBaseName, int nSize);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool ReadProcessMemory(IntPtr hProcess, long lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool WriteProcessMemory(IntPtr hProcess, long lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, IntPtr dwLength);
+
+        public enum ListModules : uint
+        {
+            /// <summary>
+            /// Use the default behavior.
+            /// </summary>
+            LIST_MODULES_DEFAULT = 0x00,
+
+            /// <summary>
+            /// List the 32-bit modules.
+            /// </summary>
+            LIST_MODULES_32BIT = 0x01,
+
+            /// <summary>
+            /// List the 64-bit modules.
+            /// </summary>
+            LIST_MODULES_64BIT = 0x02,
+
+            /// <summary>
+            /// List all modules.
+            /// </summary>
+            LIST_MODULES_ALL = 0x03,
+        }
 
         [Flags]
         public enum AllocationProtect : uint

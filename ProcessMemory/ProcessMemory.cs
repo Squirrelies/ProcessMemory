@@ -10,17 +10,17 @@ namespace ProcessMemory
 {
     public class ProcessMemory : IDisposable
     {
-        private SYSTEM_INFO sysInfo;
-        private IntPtr processHandle = IntPtr.Zero;
-
         private static TaskCreationOptions taskOpts = TaskCreationOptions.DenyChildAttach;
         private static TaskScheduler taskSched = TaskScheduler.Default;
 
-        public ProcessMemory(int pid)
+        public IntPtr ProcessHandle = IntPtr.Zero;
+        private SYSTEM_INFO sysInfo;
+
+        public ProcessMemory(int pid, bool readOnly = true)
         {
             sysInfo = new SYSTEM_INFO();
             GetSystemInfo(out sysInfo);
-            processHandle = OpenProcess(ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead | ProcessAccessFlags.VirtualMemoryWrite, false, pid);
+            ProcessHandle = OpenProcess((readOnly) ? ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead : ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead | ProcessAccessFlags.VirtualMemoryWrite, false, pid);
         }
 
         public byte[] GetByteArrayAt(long offset, int size)
@@ -29,12 +29,12 @@ namespace ProcessMemory
             MEMORY_BASIC_INFORMATION64 memBasicInfo = new MEMORY_BASIC_INFORMATION64();
             IntPtr bytesRead = IntPtr.Zero;
 
-            VirtualQueryEx(processHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
+            VirtualQueryEx(ProcessHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
 
             bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE);
             if (hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT))
             {
-                bool success = ReadProcessMemory(processHandle, offset, returnValue, size, out bytesRead);
+                bool success = ReadProcessMemory(ProcessHandle, offset, returnValue, size, out bytesRead);
                 int win32Error = Marshal.GetLastWin32Error();
             }
 
@@ -48,12 +48,12 @@ namespace ProcessMemory
             MEMORY_BASIC_INFORMATION64 memBasicInfo = new MEMORY_BASIC_INFORMATION64();
             IntPtr bytesWritten = IntPtr.Zero;
 
-            VirtualQueryEx(processHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
+            VirtualQueryEx(ProcessHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
 
             bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE);
             if (hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT))
             {
-                bool success = WriteProcessMemory(processHandle, offset, data, data.Length, out bytesWritten);
+                bool success = WriteProcessMemory(ProcessHandle, offset, data, data.Length, out bytesWritten);
                 int win32Error = Marshal.GetLastWin32Error();
             }
 
@@ -121,13 +121,13 @@ namespace ProcessMemory
                 byte[] buffer = null;
                 while (procMinAddress < procMaxAddress)
                 {
-                    VirtualQueryEx(processHandle, new IntPtr(procMinAddress), out memBasicInfo, new IntPtr(48));
+                    VirtualQueryEx(ProcessHandle, new IntPtr(procMinAddress), out memBasicInfo, new IntPtr(48));
 
                     bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE);
                     if (hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT))
                     {
                         buffer = new byte[memBasicInfo.RegionSize.ToInt64()];
-                        ReadProcessMemory(processHandle, memBasicInfo.BaseAddress.ToInt64(), buffer, (int)memBasicInfo.RegionSize, out bytesRead);
+                        ReadProcessMemory(ProcessHandle, memBasicInfo.BaseAddress.ToInt64(), buffer, (int)memBasicInfo.RegionSize, out bytesRead);
 
                         foreach (int offset in FindIndexesOf(buffer, 0, searchValue))
                         {
@@ -155,13 +155,13 @@ namespace ProcessMemory
 
             while (procMinAddress < procMaxAddress)
             {
-                VirtualQueryEx(processHandle, new IntPtr(procMinAddress), out memBasicInfo, new IntPtr(48));
+                VirtualQueryEx(ProcessHandle, new IntPtr(procMinAddress), out memBasicInfo, new IntPtr(48));
 
                 bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE);
                 if (hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT))
                 {
                     byte[] buffer = new byte[memBasicInfo.RegionSize.ToInt64()];
-                    ReadProcessMemory(processHandle, memBasicInfo.BaseAddress.ToInt64(), buffer, (int)memBasicInfo.RegionSize, out bytesRead);
+                    ReadProcessMemory(ProcessHandle, memBasicInfo.BaseAddress.ToInt64(), buffer, (int)memBasicInfo.RegionSize, out bytesRead);
 
                     yield return buffer;
                 }
@@ -239,7 +239,7 @@ namespace ProcessMemory
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
-                CloseHandle(processHandle);
+                CloseHandle(ProcessHandle);
 
                 disposedValue = true;
             }
