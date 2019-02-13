@@ -11,6 +11,12 @@ namespace ProcessMemory
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool CloseHandle(IntPtr hObject);
 
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern bool IsWow64Process(IntPtr hProcess, ref bool Wow64Process);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern int GetCurrentProcessId();
+
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "QueryFullProcessImageNameW")]
         internal static extern bool QueryFullProcessImageNameW(IntPtr hProcess, int dwFlags, [Out] char[] lpExeName, ref int lpdwSize);
 
