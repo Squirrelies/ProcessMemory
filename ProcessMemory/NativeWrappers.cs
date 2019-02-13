@@ -5,7 +5,7 @@ namespace ProcessMemory
 {
     public static class NativeWrappers
     {
-        public unsafe static IntPtr GetProcessBaseAddress(int pid)
+        public unsafe static IntPtr GetProcessBaseAddress(int pid, ListModules moduleTypes = ListModules.LIST_MODULES_ALL)
         {
             IntPtr processHandle = OpenProcess(ProcessAccessFlags.QueryLimitedInformation | ProcessAccessFlags.VirtualMemoryRead, false, pid);
 
@@ -22,7 +22,7 @@ namespace ProcessMemory
                     int lpcbNeeded = 0;
                     bool enumProcessModulesExReturn = false;
                     fixed (IntPtr* lphModule = hModules)
-                        enumProcessModulesExReturn = EnumProcessModulesEx(processHandle, lphModule, cb, out lpcbNeeded);
+                        enumProcessModulesExReturn = EnumProcessModulesEx(processHandle, lphModule, cb, out lpcbNeeded, moduleTypes);
 
                     // If we successfully retrieved an array of process modules, enumerate through them to find the main module.
                     if (enumProcessModulesExReturn)

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace ProcessMemory
 {
-    internal static class PInvoke
+    public static class PInvoke
     {
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
