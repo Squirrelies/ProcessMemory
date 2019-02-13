@@ -10,6 +10,7 @@
     <Description>A library for reading and writing process memory.</Description>
     <Copyright>Copyright © 2019 Travis J Gutjahr</Copyright>
     <Platforms>x64</Platforms>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
