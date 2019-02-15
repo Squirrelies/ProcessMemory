@@ -31,6 +31,26 @@ namespace ProcessMemory
             return returnValue;
         }
 
+        public static string GetProcessPath(int pid)
+        {
+            IntPtr processHandle = OpenProcess(ProcessAccessFlags.QueryLimitedInformation, false, pid);
+
+            try
+            {
+                // Query process image name.
+                char[] imageFileName = new char[2048];
+                int imageFileNameSize = imageFileName.Length;
+                if (QueryFullProcessImageNameW(processHandle, 0, imageFileName, ref imageFileNameSize))
+                    return new string(imageFileName, 0, imageFileNameSize);
+                else
+                    return null;
+            }
+            finally
+            {
+                CloseHandle(processHandle);
+            }
+        }
+
         public unsafe static IntPtr GetProcessBaseAddress(int pid, ListModules moduleTypes = ListModules.LIST_MODULES_ALL)
         {
             IntPtr processHandle = OpenProcess(ProcessAccessFlags.QueryLimitedInformation | ProcessAccessFlags.VirtualMemoryRead, false, pid);
