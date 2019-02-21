@@ -23,6 +23,25 @@ namespace ProcessMemory
             ProcessHandle = OpenProcess((readOnly) ? ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead : ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead | ProcessAccessFlags.VirtualMemoryWrite, false, pid);
         }
 
+        public bool ProcessRunning
+        {
+            get
+            {
+                int exitCode = 0;
+                return GetExitCodeProcess(ProcessHandle, ref exitCode) && exitCode == 259;
+            }
+        }
+
+        public int ProcessExitCode
+        {
+            get
+            {
+                int exitCode = 0;
+                GetExitCodeProcess(ProcessHandle, ref exitCode);
+                return exitCode;
+            }
+        }
+
         public byte[] GetByteArrayAt(long offset, int size)
         {
             byte[] returnValue = new byte[size];

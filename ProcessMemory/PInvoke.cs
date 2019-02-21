@@ -12,6 +12,9 @@ namespace ProcessMemory
         internal static extern bool CloseHandle(IntPtr hObject);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern bool GetExitCodeProcess(IntPtr hProcess, ref int lpExitCode);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool IsWow64Process(IntPtr hProcess, ref bool Wow64Process);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
