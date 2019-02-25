@@ -6,7 +6,7 @@ namespace ProcessMemory
     {
         private ProcessMemory memoryAccess;
         public readonly long BaseAddress;
-        public IReadOnlyList<long> Addresses;
+        public long Address { get; private set; }
         private int[] offsets32;
         private long[] offsets64;
 
@@ -14,6 +14,7 @@ namespace ProcessMemory
         {
             this.memoryAccess = memoryAccess;
             this.BaseAddress = baseAddress;
+            this.Address = 0L;
             this.offsets32 = null;
             this.offsets64 = null;
             UpdatePointers();
@@ -23,6 +24,7 @@ namespace ProcessMemory
         {
             this.memoryAccess = memoryAccess;
             this.BaseAddress = baseAddress;
+            this.Address = 0;
             this.offsets32 = offsets;
             this.offsets64 = null;
             UpdatePointers();
@@ -32,6 +34,7 @@ namespace ProcessMemory
         {
             this.memoryAccess = memoryAccess;
             this.BaseAddress = baseAddress;
+            this.Address = 0L;
             this.offsets32 = null;
             this.offsets64 = offsets;
             UpdatePointers();
@@ -44,41 +47,72 @@ namespace ProcessMemory
             else if (offsets64 != null)
                 UpdatePointers64();
             else
-                Addresses = new List<long>() { this.memoryAccess.GetLongAt(this.BaseAddress) }.AsReadOnly();
+            {
+                Address = this.memoryAccess.GetLongAt(this.BaseAddress);
+
+                if (Address < 0)
+                    Address = 0L;
+            }
         }
 
         private void UpdatePointers32()
         {
-            List<long> local = new List<long>();
+            Address = this.memoryAccess.GetIntAt(this.BaseAddress);
 
-            local.Add(this.memoryAccess.GetIntAt(this.BaseAddress));
+            // Out of range.
+            if (Address <= 0)
+            {
+                Address = 0;
+                return;
+            }
+
             foreach (int offset in this.offsets32)
-                local.Add(this.memoryAccess.GetIntAt(local[local.Count - 1] + offset));
+            {
+                Address = this.memoryAccess.GetIntAt(Address + offset);
 
-            Addresses = local.AsReadOnly();
+                // Out of range.
+                if (Address <= 0)
+                {
+                    Address = 0;
+                    return;
+                }
+            }
         }
 
         private void UpdatePointers64()
         {
-            List<long> local = new List<long>();
+            Address = this.memoryAccess.GetLongAt(this.BaseAddress);
 
-            local.Add(this.memoryAccess.GetLongAt(this.BaseAddress));
+            // Out of range.
+            if (Address <= 0L)
+            {
+                Address = 0L;
+                return;
+            }
+
             foreach (long offset in this.offsets64)
-                local.Add(this.memoryAccess.GetLongAt(local[local.Count - 1] + offset));
+            {
+                Address = this.memoryAccess.GetLongAt(Address + offset);
 
-            Addresses = local.AsReadOnly();
+                // Out of range.
+                if (Address <= 0L)
+                {
+                    Address = 0L;
+                    return;
+                }
+            }
         }
 
-        public byte[] DerefByteArray(long offset, int size) => this.memoryAccess.GetByteArrayAt(Addresses[Addresses.Count - 1] + offset, size);
-        public sbyte DerefSByte(long offset) => this.memoryAccess.GetSByteAt(Addresses[Addresses.Count - 1] + offset);
-        public byte DerefByte(long offset) => this.memoryAccess.GetByteAt(Addresses[Addresses.Count - 1] + offset);
-        public short DerefShort(long offset) => this.memoryAccess.GetShortAt(Addresses[Addresses.Count - 1] + offset);
-        public ushort DerefUShort(long offset) => this.memoryAccess.GetUShortAt(Addresses[Addresses.Count - 1] + offset);
-        public int DerefInt(long offset) => this.memoryAccess.GetIntAt(Addresses[Addresses.Count - 1] + offset);
-        public uint DerefUInt(long offset) => this.memoryAccess.GetUIntAt(Addresses[Addresses.Count - 1] + offset);
-        public long DerefLong(long offset) => this.memoryAccess.GetLongAt(Addresses[Addresses.Count - 1] + offset);
-        public ulong DerefULong(long offset) => this.memoryAccess.GetULongAt(Addresses[Addresses.Count - 1] + offset);
-        public float DerefFloat(long offset) => this.memoryAccess.GetFloatAt(Addresses[Addresses.Count - 1] + offset);
-        public double DerefDouble(long offset) => this.memoryAccess.GetDoubleAt(Addresses[Addresses.Count - 1] + offset);
+        public byte[] DerefByteArray(long offset, int size) => (Address > 0) ? this.memoryAccess.GetByteArrayAt(Address + offset, size) : default;
+        public sbyte DerefSByte(long offset) => (Address > 0) ? this.memoryAccess.GetSByteAt(Address + offset) : default;
+        public byte DerefByte(long offset) => (Address > 0) ? this.memoryAccess.GetByteAt(Address + offset) : default;
+        public short DerefShort(long offset) => (Address > 0) ? this.memoryAccess.GetShortAt(Address + offset) : default;
+        public ushort DerefUShort(long offset) => (Address > 0) ? this.memoryAccess.GetUShortAt(Address + offset) : default;
+        public int DerefInt(long offset) => (Address > 0) ? this.memoryAccess.GetIntAt(Address + offset) : default;
+        public uint DerefUInt(long offset) => (Address > 0) ? this.memoryAccess.GetUIntAt(Address + offset) : default;
+        public long DerefLong(long offset) => (Address > 0) ? this.memoryAccess.GetLongAt(Address + offset) : default;
+        public ulong DerefULong(long offset) => (Address > 0) ? this.memoryAccess.GetULongAt(Address + offset) : default;
+        public float DerefFloat(long offset) => (Address > 0) ? this.memoryAccess.GetFloatAt(Address + offset) : default;
+        public double DerefDouble(long offset) => (Address > 0) ? this.memoryAccess.GetDoubleAt(Address + offset) : default;
     }
 }
