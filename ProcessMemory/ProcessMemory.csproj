@@ -8,9 +8,9 @@
     <Company>Travis J Gutjahr</Company>
     <Product>Process Memory Access Library</Product>
     <Description>A library for reading and writing process memory.</Description>
-    <Copyright>Copyright © 2019 Travis J Gutjahr</Copyright>
+    <Copyright>Copyright © 2020 Travis J Gutjahr</Copyright>
     <Platforms>x64</Platforms>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
