@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace ProcessMemory
 {
@@ -42,25 +43,28 @@ namespace ProcessMemory
             }
         }
 
-        public byte[] GetByteArrayAt(long offset, int size)
+        public byte[] GetByteArrayAt(long offset, int size, bool verify = false)
         {
             byte[] returnValue = new byte[size];
-            MEMORY_BASIC_INFORMATION64 memBasicInfo = new MEMORY_BASIC_INFORMATION64();
-            IntPtr bytesRead = IntPtr.Zero;
 
-            VirtualQueryEx(ProcessHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
-
-            bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_WRITECOPY); // WRITECOPY also works?
-            if (hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT))
+            if (verify)
             {
-                bool success = ReadProcessMemory(ProcessHandle, offset, returnValue, size, out bytesRead);
+                MEMORY_BASIC_INFORMATION64 memBasicInfo = new MEMORY_BASIC_INFORMATION64();
+                VirtualQueryEx(ProcessHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
+                bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_WRITECOPY); // WRITECOPY also works?
+                if (!(hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT)))
+                    return returnValue;
+            }
+
+            IntPtr bytesRead = IntPtr.Zero;
+            if (!ReadProcessMemory(ProcessHandle, offset, returnValue, size, out bytesRead))
+            {
                 int win32Error = Marshal.GetLastWin32Error();
+                throw new Win32Exception(win32Error, ((Win32Error)win32Error).ToString());
             }
 
             return returnValue;
         }
-
-        public Task<byte[]> GetByteArrayAtAsync(long offset, int size, CancellationToken cancelToken) => Task.Factory.StartNew(() => GetByteArrayAt(offset, size), cancelToken, taskOpts, taskSched);
 
         public int SetByteArrayAt(long offset, byte[] data)
         {
@@ -72,14 +76,15 @@ namespace ProcessMemory
             bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE);
             if (hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT))
             {
-                bool success = WriteProcessMemory(ProcessHandle, offset, data, data.Length, out bytesWritten);
-                int win32Error = Marshal.GetLastWin32Error();
+                if (!WriteProcessMemory(ProcessHandle, offset, data, data.Length, out bytesWritten))
+                {
+                    int win32Error = Marshal.GetLastWin32Error();
+                    throw new Win32Exception(win32Error, ((Win32Error)win32Error).ToString());
+                }
             }
 
             return bytesWritten.ToInt32();
         }
-
-        public Task<int> SetByteArrayAtAsync(long offset, byte[] data, CancellationToken cancelToken) => Task.Factory.StartNew(() => SetByteArrayAt(offset, data), cancelToken, taskOpts, taskSched);
 
         public sbyte GetSByteAt(long offset) => (sbyte)GetByteArrayAt(offset, 1)[0];
         public byte GetByteAt(long offset) => GetByteArrayAt(offset, 1)[0];
@@ -92,17 +97,6 @@ namespace ProcessMemory
         public float GetFloatAt(long offset) => BitConverter.ToSingle(GetByteArrayAt(offset, 4), 0);
         public double GetDoubleAt(long offset) => BitConverter.ToDouble(GetByteArrayAt(offset, 8), 0);
 
-        public async Task<sbyte> GetSByteAtAsync(long offset, CancellationToken cancelToken) => (sbyte)(await GetByteArrayAtAsync(offset, 1, cancelToken))[0];
-        public async Task<byte> GetByteAtAsync(long offset, CancellationToken cancelToken) => (await GetByteArrayAtAsync(offset, 1, cancelToken))[0];
-        public async Task<short> GetShortAtAsync(long offset, CancellationToken cancelToken) => HighPerfBitConverter.ToInt16(await GetByteArrayAtAsync(offset, 2, cancelToken), 0);
-        public async Task<ushort> GetUShortAtAsync(long offset, CancellationToken cancelToken) => HighPerfBitConverter.ToUInt16(await GetByteArrayAtAsync(offset, 2, cancelToken), 0);
-        public async Task<int> GetIntAtAsync(long offset, CancellationToken cancelToken) => HighPerfBitConverter.ToInt32(await GetByteArrayAtAsync(offset, 4, cancelToken), 0);
-        public async Task<uint> GetUIntAtAsync(long offset, CancellationToken cancelToken) => HighPerfBitConverter.ToUInt32(await GetByteArrayAtAsync(offset, 4, cancelToken), 0);
-        public async Task<long> GetLongAtAsync(long offset, CancellationToken cancelToken) => HighPerfBitConverter.ToInt64(await GetByteArrayAtAsync(offset, 8, cancelToken), 0);
-        public async Task<ulong> GetULongAtAsync(long offset, CancellationToken cancelToken) => HighPerfBitConverter.ToUInt64(await GetByteArrayAtAsync(offset, 8, cancelToken), 0);
-        public async Task<float> GetFloatAtAsync(long offset, CancellationToken cancelToken) => BitConverter.ToSingle(await GetByteArrayAtAsync(offset, 4, cancelToken), 0);
-        public async Task<double> GetDoubleAtAsync(long offset, CancellationToken cancelToken) => BitConverter.ToDouble(await GetByteArrayAtAsync(offset, 8, cancelToken), 0);
-
         public int SetSByteAt(long offset, sbyte value) => SetByteArrayAt(offset, new byte[1] { (byte)value });
         public int SetByteAt(long offset, byte value) => SetByteArrayAt(offset, new byte[1] { value });
         public int SetShortAt(long offset, short value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
@@ -113,17 +107,6 @@ namespace ProcessMemory
         public int SetULongAt(long offset, ulong value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetFloatAt(long offset, float value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetDoubleAt(long offset, double value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-
-        public async Task<int> SetSByteAtAsync(long offset, sbyte value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, new byte[1] { (byte)value }, cancelToken);
-        public async Task<int> SetByteAtAsync(long offset, byte value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, new byte[1] { value }, cancelToken);
-        public async Task<int> SetShortAtAsync(long offset, short value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetUShortAtAsync(long offset, ushort value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetIntAtAsync(long offset, int value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetUIntAtAsync(long offset, uint value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetLongAtAsync(long offset, long value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetULongAtAsync(long offset, ulong value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetFloatAtAsync(long offset, float value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
-        public async Task<int> SetDoubleAtAsync(long offset, double value, CancellationToken cancelToken) => await SetByteArrayAtAsync(offset, BitConverter.GetBytes(value), cancelToken);
 
         public Task<HashSet<long>> ScanMemoryAsync(byte[] searchValue, CancellationToken cancelToken)
         {
