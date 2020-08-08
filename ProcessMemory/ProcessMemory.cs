@@ -43,24 +43,51 @@ namespace ProcessMemory
             }
         }
 
-        public byte[] GetByteArrayAt(long offset, int size, bool verify = false)
+        public string GetMemoryProtectFlags(long offset)
         {
-            byte[] returnValue = new byte[size];
-
-            if (verify)
+            try
             {
                 MEMORY_BASIC_INFORMATION64 memBasicInfo = new MEMORY_BASIC_INFORMATION64();
                 VirtualQueryEx(ProcessHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
-                bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_WRITECOPY); // WRITECOPY also works?
-                if (!(hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT)))
-                    return returnValue;
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                sb.AppendLine("[MEMORY_BASIC_INFORMATION64]");
+                sb.AppendFormat("BaseAddress: {0}\r\n", memBasicInfo.BaseAddress);
+                sb.AppendFormat("AllocationBase: {0}\r\n", memBasicInfo.AllocationBase);
+                sb.AppendFormat("AllocationProtect: {0}\r\n", memBasicInfo.AllocationProtect);
+                sb.AppendFormat("__alignment1: {0}\r\n", memBasicInfo.__alignment1);
+                sb.AppendFormat("RegionSize: {0}\r\n", memBasicInfo.RegionSize);
+                sb.AppendFormat("State: {0}\r\n", memBasicInfo.State);
+                sb.AppendFormat("Protect: {0}\r\n", memBasicInfo.Protect);
+                sb.AppendFormat("Type: {0}\r\n", memBasicInfo.Type);
+                sb.AppendFormat("__alignment2: {0}\r\n", memBasicInfo.__alignment2);
+                return sb.ToString();
             }
+            catch (Exception ex)
+            {
+                return string.Format("[GetMemoryProtectFlags EXCEPTION: {0}]", ex.ToString());
+            }
+        }
+
+        public byte[] GetByteArrayAt(long offset, int size)
+        {
+            byte[] returnValue = new byte[size];
+
+            //if (verify)
+            //{
+            //    MEMORY_BASIC_INFORMATION64 memBasicInfo = new MEMORY_BASIC_INFORMATION64();
+            //    VirtualQueryEx(ProcessHandle, new IntPtr(offset), out memBasicInfo, new IntPtr(48));
+            //    bool hasAnyRead = memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READONLY) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READ) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_EXECUTE_READWRITE) || memBasicInfo.Protect.HasFlag(AllocationProtect.PAGE_WRITECOPY); // WRITECOPY also works?
+            //    if (!(hasAnyRead && memBasicInfo.State.HasFlag(MemoryFlags.MEM_COMMIT)))
+            //        return returnValue;
+            //}
+
+            string debuggy = GetMemoryProtectFlags(offset);
 
             IntPtr bytesRead = IntPtr.Zero;
             if (!ReadProcessMemory(ProcessHandle, offset, returnValue, size, out bytesRead))
             {
                 int win32Error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(win32Error, ((Win32Error)win32Error).ToString());
+                throw new Win32Exception(win32Error, string.Format("{0}: {1}: {2}", ((Win32Error)win32Error).ToString(), bytesRead.ToInt32(), GetMemoryProtectFlags(offset)));
             }
 
             return returnValue;

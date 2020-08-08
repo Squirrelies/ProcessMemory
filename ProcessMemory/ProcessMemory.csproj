@@ -3,14 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <PackageId>Process Memory Access Library</PackageId>
+    <Platforms>x64</Platforms>
     <Authors>Travis J Gutjahr</Authors>
     <Company>Travis J Gutjahr</Company>
+    <Copyright>Copyright © 2020 Travis J Gutjahr</Copyright>
     <Product>Process Memory Access Library</Product>
     <Description>A library for reading and writing process memory.</Description>
-    <Copyright>Copyright © 2020 Travis J Gutjahr</Copyright>
-    <Platforms>x64</Platforms>
-    <Version>1.0.9</Version>
+    <Version>1.1.0</Version>
+    <FileVersion>1.1.0.0</FileVersion>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
