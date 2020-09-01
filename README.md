@@ -32,7 +32,7 @@ namespace ProcMemTester
 
         public static void Main()
         {
-            Console.WriteLine("HP: {0} / {1}", currentHealth, maximumHealth);
+            Console.WriteLine("HP: {0} / {1}", CurrentHealth, MaximumHealth);
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
