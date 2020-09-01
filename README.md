@@ -27,8 +27,8 @@ namespace ProcMemTester
         private static Process process = Process.GetProcessesByName("re3")[0];
         private static ProcessMemoryHandler processMemoryHandler = new ProcessMemoryHandler(process.Id);
         private static MultilevelPointer healthPointer = new MultilevelPointer(processMemoryHandler, IntPtr.Add(process.MainModule.BaseAddress, 0x08D89B90), 0x50, 0x20);
-        public static int maximumHealth => healthPointer.DerefInt(0x54);
-        public static int currentHealth => healthPointer.DerefInt(0x58);
+        public static int MaximumHealth => healthPointer.DerefInt(0x54);
+        public static int CurrentHealth => healthPointer.DerefInt(0x58);
 
         public static void Main()
         {
