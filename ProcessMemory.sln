@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessMemory.Common", "ProcessMemory.Common\ProcessMemory.Common.csproj", "{8207A531-0898-4A4A-B6D2-A17D1DF1F096}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessMemory.Common", "ProcessMemory.Common\ProcessMemory.Common.csproj", "{8207A531-0898-4A4A-B6D2-A17D1DF1F096}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessMemory.x86", "ProcessMemory.x86\ProcessMemory.x86.csproj", "{4D814126-F401-4E50-B577-FB9F36AE2013}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessMemory.x86", "ProcessMemory.x86\ProcessMemory.x86.csproj", "{4D814126-F401-4E50-B577-FB9F36AE2013}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessMemory.x64", "ProcessMemory.x64\ProcessMemory.x64.csproj", "{746DD865-55D3-4890-856A-ADB58D2AD4CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessMemory.x64", "ProcessMemory.x64\ProcessMemory.x64.csproj", "{746DD865-55D3-4890-856A-ADB58D2AD4CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,12 +21,12 @@ Global
 		{8207A531-0898-4A4A-B6D2-A17D1DF1F096}.Release|Main.Build.0 = Release|Any CPU
 		{4D814126-F401-4E50-B577-FB9F36AE2013}.Debug|Main.ActiveCfg = Debug|x86
 		{4D814126-F401-4E50-B577-FB9F36AE2013}.Debug|Main.Build.0 = Debug|x86
-		{4D814126-F401-4E50-B577-FB9F36AE2013}.Release|Main.ActiveCfg = Release|Any CPU
-		{4D814126-F401-4E50-B577-FB9F36AE2013}.Release|Main.Build.0 = Release|Any CPU
+		{4D814126-F401-4E50-B577-FB9F36AE2013}.Release|Main.ActiveCfg = Release|x86
+		{4D814126-F401-4E50-B577-FB9F36AE2013}.Release|Main.Build.0 = Release|x86
 		{746DD865-55D3-4890-856A-ADB58D2AD4CC}.Debug|Main.ActiveCfg = Debug|x64
 		{746DD865-55D3-4890-856A-ADB58D2AD4CC}.Debug|Main.Build.0 = Debug|x64
-		{746DD865-55D3-4890-856A-ADB58D2AD4CC}.Release|Main.ActiveCfg = Release|Any CPU
-		{746DD865-55D3-4890-856A-ADB58D2AD4CC}.Release|Main.Build.0 = Release|Any CPU
+		{746DD865-55D3-4890-856A-ADB58D2AD4CC}.Release|Main.ActiveCfg = Release|x64
+		{746DD865-55D3-4890-856A-ADB58D2AD4CC}.Release|Main.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
