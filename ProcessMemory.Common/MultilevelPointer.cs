@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProcessMemory.Common.Types;
+using System;
 
 namespace ProcessMemory.Common
 {
@@ -59,6 +60,8 @@ namespace ProcessMemory.Common
         public byte DerefByte(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetByteAt(IntPtr.Add(Address, offset)) : default;
         public short DerefShort(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetShortAt(IntPtr.Add(Address, offset)) : default;
         public ushort DerefUShort(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetUShortAt(IntPtr.Add(Address, offset)) : default;
+        public Int24 DerefInt24(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetInt24At(IntPtr.Add(Address, offset)) : default;
+        public UInt24 DerefUInt24(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetUInt24At(IntPtr.Add(Address, offset)) : default;
         public int DerefInt(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetIntAt(IntPtr.Add(Address, offset)) : default;
         public uint DerefUInt(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetUIntAt(IntPtr.Add(Address, offset)) : default;
         public long DerefLong(int offset) => (Address != IntPtr.Zero) ? this.memoryAccess.GetLongAt(IntPtr.Add(Address, offset)) : default;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProcessMemory.Common.Types;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static ProcessMemory.Common.PInvoke;
@@ -46,6 +47,8 @@ namespace ProcessMemory.Common
         public byte GetByteAt(IntPtr offset) => GetByteArrayAt(offset, 1)[0];
         public short GetShortAt(IntPtr offset) => BitConverter.ToInt16(GetByteArrayAt(offset, 2), 0);
         public ushort GetUShortAt(IntPtr offset) => BitConverter.ToUInt16(GetByteArrayAt(offset, 2), 0);
+        public Int24 GetInt24At(IntPtr offset) => new Int24(GetByteArrayAt(offset, 3), 0);
+        public UInt24 GetUInt24At(IntPtr offset) => new UInt24(GetByteArrayAt(offset, 3), 0);
         public int GetIntAt(IntPtr offset) => BitConverter.ToInt32(GetByteArrayAt(offset, 4), 0);
         public uint GetUIntAt(IntPtr offset) => BitConverter.ToUInt32(GetByteArrayAt(offset, 4), 0);
         public long GetLongAt(IntPtr offset) => BitConverter.ToInt64(GetByteArrayAt(offset, 8), 0);
@@ -57,6 +60,8 @@ namespace ProcessMemory.Common
         public int SetByteAt(IntPtr offset, byte value) => SetByteArrayAt(offset, new byte[1] { value });
         public int SetShortAt(IntPtr offset, short value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetUShortAt(IntPtr offset, ushort value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
+        public int SetInt24At(IntPtr offset, Int24 value) => SetByteArrayAt(offset, value.GetBytes());
+        public int SetUInt24At(IntPtr offset, UInt24 value) => SetByteArrayAt(offset, value.GetBytes());
         public int SetIntAt(IntPtr offset, int value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetUIntAt(IntPtr offset, uint value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetLongAt(IntPtr offset, long value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
