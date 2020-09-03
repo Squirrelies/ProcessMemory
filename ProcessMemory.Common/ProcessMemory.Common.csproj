@@ -9,8 +9,8 @@
     <Copyright>Copyright © 2020 Travis J Gutjahr</Copyright>
     <Product>Process Memory Access Library - Common</Product>
     <Description>A library for reading and writing process memory.</Description>
-    <Version>2.1.1</Version>
-    <FileVersion>2.1.1.0</FileVersion>
+    <Version>2.1.2</Version>
+    <FileVersion>2.1.2.0</FileVersion>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
   </PropertyGroup>
 

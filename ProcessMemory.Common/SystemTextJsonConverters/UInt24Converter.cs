@@ -9,6 +9,6 @@ namespace ProcessMemory.Common.SystemTextJsonConverters
     {
         public override UInt24 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetUInt32();
 
-        public override void Write(Utf8JsonWriter writer, UInt24 value, JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+        public override void Write(Utf8JsonWriter writer, UInt24 value, JsonSerializerOptions options) => writer.WriteNumberValue(value.Value);
     }
 }
