@@ -45,14 +45,14 @@ namespace ProcessMemory.Common
 
         public sbyte GetSByteAt(IntPtr offset) => (sbyte)GetByteArrayAt(offset, 1)[0];
         public byte GetByteAt(IntPtr offset) => GetByteArrayAt(offset, 1)[0];
-        public short GetShortAt(IntPtr offset) => BitConverter.ToInt16(GetByteArrayAt(offset, 2), 0);
-        public ushort GetUShortAt(IntPtr offset) => BitConverter.ToUInt16(GetByteArrayAt(offset, 2), 0);
+        public short GetShortAt(IntPtr offset) => HighPerfBitConverter.ToInt16(GetByteArrayAt(offset, 2), 0);
+        public ushort GetUShortAt(IntPtr offset) => HighPerfBitConverter.ToUInt16(GetByteArrayAt(offset, 2), 0);
         public Int24 GetInt24At(IntPtr offset) => new Int24(GetByteArrayAt(offset, 3), 0);
         public UInt24 GetUInt24At(IntPtr offset) => new UInt24(GetByteArrayAt(offset, 3), 0);
-        public int GetIntAt(IntPtr offset) => BitConverter.ToInt32(GetByteArrayAt(offset, 4), 0);
-        public uint GetUIntAt(IntPtr offset) => BitConverter.ToUInt32(GetByteArrayAt(offset, 4), 0);
-        public long GetLongAt(IntPtr offset) => BitConverter.ToInt64(GetByteArrayAt(offset, 8), 0);
-        public ulong GetULongAt(IntPtr offset) => BitConverter.ToUInt64(GetByteArrayAt(offset, 8), 0);
+        public int GetIntAt(IntPtr offset) => HighPerfBitConverter.ToInt32(GetByteArrayAt(offset, 4), 0);
+        public uint GetUIntAt(IntPtr offset) => HighPerfBitConverter.ToUInt32(GetByteArrayAt(offset, 4), 0);
+        public long GetLongAt(IntPtr offset) => HighPerfBitConverter.ToInt64(GetByteArrayAt(offset, 8), 0);
+        public ulong GetULongAt(IntPtr offset) => HighPerfBitConverter.ToUInt64(GetByteArrayAt(offset, 8), 0);
         public float GetFloatAt(IntPtr offset) => BitConverter.ToSingle(GetByteArrayAt(offset, 4), 0);
         public double GetDoubleAt(IntPtr offset) => BitConverter.ToDouble(GetByteArrayAt(offset, 8), 0);
 
