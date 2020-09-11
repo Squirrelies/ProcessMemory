@@ -44,7 +44,6 @@ namespace ProcessMemory.x86
         public override byte[] GetByteArrayAt(IntPtr offset, int size)
         {
             byte[] returnValue = new byte[size];
-            string debug = GetMemoryProtectFlags(offset);
             IntPtr bytesRead = IntPtr.Zero;
             if (!ReadProcessMemory(ProcessHandle, offset, returnValue, size, out bytesRead))
             {
@@ -57,7 +56,6 @@ namespace ProcessMemory.x86
 
         public override int SetByteArrayAt(IntPtr offset, byte[] data)
         {
-            string debug = GetMemoryProtectFlags(offset);
             IntPtr bytesWritten = IntPtr.Zero;
             if (!WriteProcessMemory(ProcessHandle, offset, data, data.Length, out bytesWritten))
             {
