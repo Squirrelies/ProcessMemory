@@ -1,40 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace ProcessMemory.Common.Types
 {
     [DebuggerDisplay("{Value,nq}")]
+    [StructLayout(LayoutKind.Sequential)]
     public readonly struct UInt24 : IEquatable<UInt24>, IEqualityComparer<UInt24>
     {
         public const uint MinValue = unchecked(0x00000000); // 0
         public const uint MaxValue = unchecked(0x00FFFFFF); // 16777215
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private readonly byte _b0;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private readonly byte _b1;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private readonly byte _b2;
+        private readonly byte[] _value;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public uint Value => (uint)(_b0 | _b1 << 8 | _b2 << 16);
+        public uint Value => (uint)(_value[0] | _value[1] << 8 | _value[2] << 16);
 
         public UInt24(byte[] value, int startIndex = 0)
         {
             if (value.Length - startIndex != 3)
                 throw new ArgumentOutOfRangeException();
 
-            _b0 = value[startIndex + 2];
-            _b1 = value[startIndex + 1];
-            _b2 = value[startIndex];
+            _value = new byte[3];
+            _value[0] = value[startIndex + 2];
+            _value[1] = value[startIndex + 1];
+            _value[2] = value[startIndex];
         }
 
         public UInt24(uint value)
         {
-            _b0 = (byte)(value & 0xFF);
-            _b1 = (byte)((value >> 8) & 0xFF);
-            _b2 = (byte)((value >> 16) & 0xFF);
+            _value = new byte[3];
+            _value[0] = (byte)(value & 0xFF);
+            _value[1] = (byte)((value >> 8) & 0xFF);
+            _value[2] = (byte)((value >> 16) & 0xFF);
         }
 
         public static implicit operator UInt24(uint v) => new UInt24(v);
@@ -57,6 +57,6 @@ namespace ProcessMemory.Common.Types
         public string ToString(IFormatProvider? provider) => Value.ToString(provider);
         public string ToString(string? format) => Value.ToString(format);
         public string ToString(string? format, IFormatProvider? provider) => Value.ToString(format, provider);
-        public byte[] GetBytes() => new byte[3] { _b0, _b1, _b2 };
+        public byte[] GetBytes() => _value;
     }
 }

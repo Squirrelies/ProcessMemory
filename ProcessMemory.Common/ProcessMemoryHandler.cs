@@ -69,6 +69,36 @@ namespace ProcessMemory.Common
         public int SetFloatAt(IntPtr offset, float value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetDoubleAt(IntPtr offset, double value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
 
+        public abstract bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result);
+
+        public bool TryGetSByteAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 1, result);
+        public bool TryGetByteAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 1, result);
+        public bool TryGetShortAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 2, result);
+        public bool TryGetUShortAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 2, result);
+        public bool TryGetInt24At(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 3, result);
+        public bool TryGetUInt24At(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 3, result);
+        public bool TryGetIntAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 4, result);
+        public bool TryGetUIntAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 4, result);
+        public bool TryGetLongAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 8, result);
+        public bool TryGetULongAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 8, result);
+        public bool TryGetFloatAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 4, result);
+        public bool TryGetDoubleAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 8, result);
+
+        public abstract bool TryGetByteArrayAt(IntPtr offset, int size, void* result);
+
+        public bool TryGetSByteAt(IntPtr offset, sbyte* result) => TryGetByteArrayAt(offset, 1, result);
+        public bool TryGetByteAt(IntPtr offset, byte* result) => TryGetByteArrayAt(offset, 1, result);
+        public bool TryGetShortAt(IntPtr offset, short* result) => TryGetByteArrayAt(offset, 2, result);
+        public bool TryGetUShortAt(IntPtr offset, ushort* result) => TryGetByteArrayAt(offset, 2, result);
+        public bool TryGetInt24At(IntPtr offset, byte* result) => TryGetByteArrayAt(offset, 3, result);
+        public bool TryGetUInt24At(IntPtr offset, byte* result) => TryGetByteArrayAt(offset, 3, result);
+        public bool TryGetIntAt(IntPtr offset, int* result) => TryGetByteArrayAt(offset, 4, result);
+        public bool TryGetUIntAt(IntPtr offset, uint* result) => TryGetByteArrayAt(offset, 4, result);
+        public bool TryGetLongAt(IntPtr offset, long* result) => TryGetByteArrayAt(offset, 8, result);
+        public bool TryGetULongAt(IntPtr offset, ulong* result) => TryGetByteArrayAt(offset, 8, result);
+        public bool TryGetFloatAt(IntPtr offset, float* result) => TryGetByteArrayAt(offset, 4, result);
+        public bool TryGetDoubleAt(IntPtr offset, double* result) => TryGetByteArrayAt(offset, 8, result);
+
         public static int FindIndexOf(byte[] array, int start, byte[] sequence)
         {
             int end = array.Length - sequence.Length; // past here no match is possible
