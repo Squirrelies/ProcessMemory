@@ -69,35 +69,51 @@ namespace ProcessMemory.Common
         public int SetFloatAt(IntPtr offset, float value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
         public int SetDoubleAt(IntPtr offset, double value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
 
-        public abstract bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result);
+        public abstract bool TryGetByteArrayAt(IntPtr address, int size, IntPtr result);
 
-        public bool TryGetSByteAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 1, result);
-        public bool TryGetByteAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 1, result);
-        public bool TryGetShortAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 2, result);
-        public bool TryGetUShortAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 2, result);
-        public bool TryGetInt24At(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 3, result);
-        public bool TryGetUInt24At(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 3, result);
-        public bool TryGetIntAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 4, result);
-        public bool TryGetUIntAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 4, result);
-        public bool TryGetLongAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 8, result);
-        public bool TryGetULongAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 8, result);
-        public bool TryGetFloatAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 4, result);
-        public bool TryGetDoubleAt(IntPtr offset, IntPtr result) => TryGetByteArrayAt(offset, 8, result);
+        public bool TryGetSByteAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 1, result);
+        public bool TryGetByteAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 1, result);
+        public bool TryGetShortAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 2, result);
+        public bool TryGetUShortAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 2, result);
+        public bool TryGetInt24At(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 3, result);
+        public bool TryGetUInt24At(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 3, result);
+        public bool TryGetIntAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetUIntAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetLongAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 8, result);
+        public bool TryGetULongAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 8, result);
+        public bool TryGetFloatAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetDoubleAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 8, result);
 
-        public abstract bool TryGetByteArrayAt(IntPtr offset, int size, void* result);
+        public abstract bool TryGetByteArrayAt(IntPtr address, int size, void* result);
+        public abstract bool TryGetByteArrayAt(void* address, int size, IntPtr result);
 
-        public bool TryGetSByteAt(IntPtr offset, sbyte* result) => TryGetByteArrayAt(offset, 1, result);
-        public bool TryGetByteAt(IntPtr offset, byte* result) => TryGetByteArrayAt(offset, 1, result);
-        public bool TryGetShortAt(IntPtr offset, short* result) => TryGetByteArrayAt(offset, 2, result);
-        public bool TryGetUShortAt(IntPtr offset, ushort* result) => TryGetByteArrayAt(offset, 2, result);
-        public bool TryGetInt24At(IntPtr offset, byte* result) => TryGetByteArrayAt(offset, 3, result);
-        public bool TryGetUInt24At(IntPtr offset, byte* result) => TryGetByteArrayAt(offset, 3, result);
-        public bool TryGetIntAt(IntPtr offset, int* result) => TryGetByteArrayAt(offset, 4, result);
-        public bool TryGetUIntAt(IntPtr offset, uint* result) => TryGetByteArrayAt(offset, 4, result);
-        public bool TryGetLongAt(IntPtr offset, long* result) => TryGetByteArrayAt(offset, 8, result);
-        public bool TryGetULongAt(IntPtr offset, ulong* result) => TryGetByteArrayAt(offset, 8, result);
-        public bool TryGetFloatAt(IntPtr offset, float* result) => TryGetByteArrayAt(offset, 4, result);
-        public bool TryGetDoubleAt(IntPtr offset, double* result) => TryGetByteArrayAt(offset, 8, result);
+        public bool TryGetSByteAt(IntPtr address, sbyte* result) => TryGetByteArrayAt(address, 1, result);
+        public bool TryGetByteAt(IntPtr address, byte* result) => TryGetByteArrayAt(address, 1, result);
+        public bool TryGetShortAt(IntPtr address, short* result) => TryGetByteArrayAt(address, 2, result);
+        public bool TryGetUShortAt(IntPtr address, ushort* result) => TryGetByteArrayAt(address, 2, result);
+        public bool TryGetInt24At(IntPtr address, byte* result) => TryGetByteArrayAt(address, 3, result);
+        public bool TryGetUInt24At(IntPtr address, byte* result) => TryGetByteArrayAt(address, 3, result);
+        public bool TryGetIntAt(IntPtr address, int* result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetUIntAt(IntPtr address, uint* result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetLongAt(IntPtr address, long* result) => TryGetByteArrayAt(address, 8, result);
+        public bool TryGetULongAt(IntPtr address, ulong* result) => TryGetByteArrayAt(address, 8, result);
+        public bool TryGetFloatAt(IntPtr address, float* result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetDoubleAt(IntPtr address, double* result) => TryGetByteArrayAt(address, 8, result);
+
+        public abstract bool TryGetByteArrayAt(void* address, int size, void* result);
+
+        public bool TryGetSByteAt(void* address, sbyte* result) => TryGetByteArrayAt(address, 1, result);
+        public bool TryGetByteAt(void* address, byte* result) => TryGetByteArrayAt(address, 1, result);
+        public bool TryGetShortAt(void* address, short* result) => TryGetByteArrayAt(address, 2, result);
+        public bool TryGetUShortAt(void* address, ushort* result) => TryGetByteArrayAt(address, 2, result);
+        public bool TryGetInt24At(void* address, byte* result) => TryGetByteArrayAt(address, 3, result);
+        public bool TryGetUInt24At(void* address, byte* result) => TryGetByteArrayAt(address, 3, result);
+        public bool TryGetIntAt(void* address, int* result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetUIntAt(void* address, uint* result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetLongAt(void* address, long* result) => TryGetByteArrayAt(address, 8, result);
+        public bool TryGetULongAt(void* address, ulong* result) => TryGetByteArrayAt(address, 8, result);
+        public bool TryGetFloatAt(void* address, float* result) => TryGetByteArrayAt(address, 4, result);
+        public bool TryGetDoubleAt(void* address, double* result) => TryGetByteArrayAt(address, 8, result);
 
         public static int FindIndexOf(byte[] array, int start, byte[] sequence)
         {

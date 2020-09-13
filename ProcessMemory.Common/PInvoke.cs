@@ -39,6 +39,15 @@ namespace ProcessMemory.Common
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, void* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, void* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, void* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]

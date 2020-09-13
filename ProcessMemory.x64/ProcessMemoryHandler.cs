@@ -80,6 +80,18 @@ namespace ProcessMemory.x64
             return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
         }
 
+        public override bool TryGetByteArrayAt(void* offset, int size, IntPtr result)
+        {
+            IntPtr bytesRead = IntPtr.Zero;
+            return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
+        }
+
+        public override bool TryGetByteArrayAt(void* offset, int size, void* result)
+        {
+            IntPtr bytesRead = IntPtr.Zero;
+            return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
+        }
+
         public Task<HashSet<long>> ScanMemoryAsync(byte[] searchValue, CancellationToken cancelToken)
         {
             return Task.Factory.StartNew(() =>
