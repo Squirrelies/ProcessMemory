@@ -1,4 +1,4 @@
-﻿namespace ProcessMemory.Common
+﻿namespace ProcessMemory
 {
     public enum Win32Error : int
     {

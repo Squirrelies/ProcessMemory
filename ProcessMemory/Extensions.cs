@@ -1,6 +1,6 @@
-using ProcessMemory.Common.Types;
+using ProcessMemory.Types;
 
-namespace ProcessMemory.Common
+namespace ProcessMemory
 {
     public static class Extensions
     {

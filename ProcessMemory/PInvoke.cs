@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace ProcessMemory.Common
+namespace ProcessMemory
 {
     public static unsafe partial class PInvoke
     {
@@ -29,6 +29,8 @@ namespace ProcessMemory.Common
         [DllImport("psapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern int GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] char[] lpBaseName, int nSize);
 
+
+#if x64
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
@@ -39,13 +41,33 @@ namespace ProcessMemory.Common
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, void* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, void* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, void* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+#else
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+#endif
+
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
@@ -58,6 +80,40 @@ namespace ProcessMemory.Common
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
+
+#if x64
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, int dwLength);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MEMORY_BASIC_INFORMATION64 // 48
+        {
+            public IntPtr BaseAddress; // 8
+            public IntPtr AllocationBase; // 8
+            public AllocationProtect AllocationProtect; // 4
+            public int __alignment1; // 4
+            public IntPtr RegionSize; // 8
+            public MemoryFlags State; // 4
+            public AllocationProtect Protect; // 4
+            public MemoryFlags Type; // 4
+            public int __alignment2; // 4
+        }
+#else
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION32 lpBuffer, int dwLength);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MEMORY_BASIC_INFORMATION32 // 28
+        {
+            public IntPtr BaseAddress; // 4
+            public IntPtr AllocationBase; // 4
+            public AllocationProtect AllocationProtect; // 4
+            public IntPtr RegionSize; // 4
+            public MemoryFlags State; // 4
+            public AllocationProtect Protect; // 4
+            public MemoryFlags Type; // 4
+        }
+#endif
 
         public enum ListModules : uint
         {

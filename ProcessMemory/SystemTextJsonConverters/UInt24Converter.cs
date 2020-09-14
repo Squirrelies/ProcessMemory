@@ -1,9 +1,9 @@
-﻿using ProcessMemory.Common.Types;
+﻿using ProcessMemory.Types;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ProcessMemory.Common.SystemTextJsonConverters
+namespace ProcessMemory.SystemTextJsonConverters
 {
     public class UInt24Converter : JsonConverter<UInt24>
     {

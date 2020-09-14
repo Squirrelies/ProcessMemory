@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ProcessMemory.Common
+namespace ProcessMemory
 {
     /// <summary>
     /// Actually does the same code as BitConverter except it doesn't check endianness, bother with contracts or emit CLS compliance. It just does the bit shifting.

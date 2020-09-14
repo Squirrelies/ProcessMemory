@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading;
-using static ProcessMemory.Common.PInvoke;
+using static ProcessMemory.PInvoke;
 
-namespace ProcessMemory.Common
+namespace ProcessMemory
 {
     public static class NativeWrappers
     {
