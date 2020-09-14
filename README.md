@@ -2,23 +2,19 @@
 A library for reading and writing process memory.
 
 ## Usage
-Reference ProcessMemory.Common and either ProcessMemory.x64 or ProcessMemory.x86 in your project.
+Reference ProcessMemory in your project.
 Ideal using statements are...
 ```csharp
-using ProcessMemory.x64;
-//or
-//using ProcessMemory.x86;
-using static ProcessMemory.Common.Extensions;
+using ProcessMemory;
+using static ProcessMemory.Extensions;
 ```
-A lot of the methods for the ProcessMemoryHandler class are platform-agnostic and therefore stored within the ProcessMemory.Common library, effectively making that library mandatory.
-Things that are platform-specific are placed in the appropriate library.
 
 ## Example
 ```csharp
 using System;
 using System.Diagnostics;
-using ProcessMemory.x64;
-using static ProcessMemory.Common.Extensions;
+using ProcessMemory;
+using static ProcessMemory.Extensions;
 
 namespace ProcMemTester
 {
