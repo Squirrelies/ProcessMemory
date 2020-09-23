@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using static ProcessMemory.PInvoke;
 
 namespace ProcessMemory
@@ -13,7 +11,7 @@ namespace ProcessMemory
     {
         public readonly IntPtr ProcessHandle = IntPtr.Zero;
 
-        protected ProcessMemoryHandler(int pid, bool readOnly = true)
+        public ProcessMemoryHandler(int pid, bool readOnly = true)
         {
             ProcessHandle = OpenProcess((readOnly) ? ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead : ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VirtualMemoryRead | ProcessAccessFlags.VirtualMemoryWrite, false, pid);
         }
@@ -264,7 +262,7 @@ namespace ProcessMemory
             }
         }
 
-#region IDisposable Support
+        #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -298,6 +296,6 @@ namespace ProcessMemory
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-#endregion
+        #endregion
     }
 }

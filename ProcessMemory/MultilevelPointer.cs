@@ -3,27 +3,28 @@ using System;
 
 namespace ProcessMemory
 {
-    public unsafe abstract class MultilevelPointer
+    public unsafe class MultilevelPointer
     {
         private ProcessMemoryHandler memoryAccess;
         public IntPtr BaseAddress { get => (IntPtr)_baseAddress; }
         public IntPtr Address { get => (IntPtr)_address; }
-        private int[] offsets;
 
 #if x64
         private readonly long* _baseAddress;
-        private long* _address;
-        private bool IsAddressPointerNull => _address == (long*)0;
+        private long _address;
+        private long[] offsets;
+        private bool IsAddressPointerNull => _address == 0L;
 #else
         private readonly int* _baseAddress;
-        private int* _address;
-        private bool IsAddressPointerNull => _address == (int*)0;
+        private int _address;
+        private int[] offsets;
+        private bool IsAddressPointerNull => _address == 0;
 #endif
 
 
 #if x64
         public MultilevelPointer(ProcessMemoryHandler memoryAccess, IntPtr baseAddress) : this(memoryAccess, (long*)baseAddress.ToPointer()) { }
-        public MultilevelPointer(ProcessMemoryHandler memoryAccess, IntPtr baseAddress, params int[] offsets) : this(memoryAccess, (long*)baseAddress.ToPointer(), offsets) { }
+        public MultilevelPointer(ProcessMemoryHandler memoryAccess, IntPtr baseAddress, params long[] offsets) : this(memoryAccess, (long*)baseAddress.ToPointer(), offsets) { }
 #else
         public MultilevelPointer(ProcessMemoryHandler memoryAccess, IntPtr baseAddress) : this(memoryAccess, (int*)baseAddress.ToPointer()) { }
         public MultilevelPointer(ProcessMemoryHandler memoryAccess, IntPtr baseAddress, params int[] offsets) : this(memoryAccess, (int*)baseAddress.ToPointer(), offsets) { }
@@ -32,11 +33,11 @@ namespace ProcessMemory
 #if x64
         public MultilevelPointer(ProcessMemoryHandler memoryAccess, long* baseAddress)
         {
-            this._address = (long*)0;
+            this._address = 0L;
 #else
         public MultilevelPointer(ProcessMemoryHandler memoryAccess, int* baseAddress)
         {
-            this._address = (int*)0;
+            this._address = 0;
 #endif
             this.memoryAccess = memoryAccess;
             this._baseAddress = baseAddress;
@@ -45,13 +46,13 @@ namespace ProcessMemory
         }
 
 #if x64
-        public MultilevelPointer(ProcessMemoryHandler memoryAccess, long* baseAddress, params int[] offsets)
+        public MultilevelPointer(ProcessMemoryHandler memoryAccess, long* baseAddress, params long[] offsets)
         {
-            this._address = (long*)0;
+            this._address = 0L;
 #else
         public MultilevelPointer(ProcessMemoryHandler memoryAccess, int* baseAddress, params int[] offsets)
         {
-            this._address = (int*)0;
+            this._address = 0;
 #endif
             this.memoryAccess = memoryAccess;
             this._baseAddress = baseAddress;
@@ -59,39 +60,43 @@ namespace ProcessMemory
             UpdatePointers();
         }
 
-        public void UpdatePointers()
+        public unsafe void UpdatePointers()
         {
 #if x64
-            memoryAccess.TryGetLongAt(_baseAddress, _address);
+            fixed (long* p = &_address)
+                memoryAccess.TryGetLongAt(_baseAddress, p);
 
-            if (_address == (long*)0)
+            if (_address == 0L)
                 return;
 
             if (offsets != null)
             {
-                foreach (int offset in offsets)
+                foreach (long offset in offsets)
                 {
-                    memoryAccess.TryGetLongAt(_address + offset, _address);
+                    fixed (long* p = &_address)
+                        memoryAccess.TryGetLongAt((long*)(_address + offset), p);
 
                     // Out of range.
-                    if (_address == (long*)0)
+                    if (_address == 0L)
                         return;
                 }
             }
 #else
-            memoryAccess.TryGetIntAt(_baseAddress, _address);
+            fixed (int* p = &_address)
+                memoryAccess.TryGetIntAt(_baseAddress, p);
 
-            if (_address == (int*)0)
+            if (_address == 0)
                 return;
 
             if (offsets != null)
             {
                 foreach (int offset in offsets)
                 {
-                    memoryAccess.TryGetIntAt(_address + offset, _address);
+                    fixed (int* p = &_address)
+                        memoryAccess.TryGetIntAt((int*)(_address + offset), p);
 
                     // Out of range.
-                    if (_address == (int*)0)
+                    if (_address == 0)
                         return;
                 }
             }
@@ -126,18 +131,34 @@ namespace ProcessMemory
         public bool TryDerefFloat(int offset, IntPtr result) => (!IsAddressPointerNull && result != IntPtr.Zero) ? this.memoryAccess.TryGetFloatAt(IntPtr.Add(Address, offset), result) : false;
         public bool TryDerefDouble(int offset, IntPtr result) => (!IsAddressPointerNull && result != IntPtr.Zero) ? this.memoryAccess.TryGetDoubleAt(IntPtr.Add(Address, offset), result) : false;
 
-        public bool TryDerefByteArray(int offset, int size, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetByteArrayAt(_address + offset, size, result) : false;
-        public bool TryDerefSByte(int offset, sbyte* result) => (!IsAddressPointerNull && result != (sbyte*)0) ? this.memoryAccess.TryGetSByteAt(_address + offset, result) : false;
-        public bool TryDerefByte(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetByteAt(_address + offset, result) : false;
-        public bool TryDerefShort(int offset, short* result) => (!IsAddressPointerNull && result != (short*)0) ? this.memoryAccess.TryGetShortAt(_address + offset, result) : false;
-        public bool TryDerefUShort(int offset, ushort* result) => (!IsAddressPointerNull && result != (ushort*)0) ? this.memoryAccess.TryGetUShortAt(_address + offset, result) : false;
-        public bool TryDerefInt24(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetInt24At(_address + offset, result) : false;
-        public bool TryDerefUInt24(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetUInt24At(_address + offset, result) : false;
-        public bool TryDerefInt(int offset, int* result) => (!IsAddressPointerNull && result != (int*)0) ? this.memoryAccess.TryGetIntAt(_address + offset, result) : false;
-        public bool TryDerefUInt(int offset, uint* result) => (!IsAddressPointerNull && result != (uint*)0) ? this.memoryAccess.TryGetUIntAt(_address + offset, result) : false;
-        public bool TryDerefLong(int offset, long* result) => (!IsAddressPointerNull && result != (long*)0) ? this.memoryAccess.TryGetLongAt(_address + offset, result) : false;
-        public bool TryDerefULong(int offset, ulong* result) => (!IsAddressPointerNull && result != (ulong*)0) ? this.memoryAccess.TryGetULongAt(_address + offset, result) : false;
-        public bool TryDerefFloat(int offset, float* result) => (!IsAddressPointerNull && result != (float*)0) ? this.memoryAccess.TryGetFloatAt(_address + offset, result) : false;
-        public bool TryDerefDouble(int offset, double* result) => (!IsAddressPointerNull && result != (double*)0) ? this.memoryAccess.TryGetDoubleAt(_address + offset, result) : false;
+#if x64
+        public bool TryDerefByteArray(int offset, int size, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetByteArrayAt((long*)(_address + offset), size, result) : false;
+        public bool TryDerefSByte(int offset, sbyte* result) => (!IsAddressPointerNull && result != (sbyte*)0) ? this.memoryAccess.TryGetSByteAt((long*)(_address + offset), result) : false;
+        public bool TryDerefByte(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetByteAt((long*)(_address + offset), result) : false;
+        public bool TryDerefShort(int offset, short* result) => (!IsAddressPointerNull && result != (short*)0) ? this.memoryAccess.TryGetShortAt((long*)(_address + offset), result) : false;
+        public bool TryDerefUShort(int offset, ushort* result) => (!IsAddressPointerNull && result != (ushort*)0) ? this.memoryAccess.TryGetUShortAt((long*)(_address + offset), result) : false;
+        public bool TryDerefInt24(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetInt24At((long*)(_address + offset), result) : false;
+        public bool TryDerefUInt24(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetUInt24At((long*)(_address + offset), result) : false;
+        public bool TryDerefInt(int offset, int* result) => (!IsAddressPointerNull && result != (int*)0) ? this.memoryAccess.TryGetIntAt((long*)(_address + offset), result) : false;
+        public bool TryDerefUInt(int offset, uint* result) => (!IsAddressPointerNull && result != (uint*)0) ? this.memoryAccess.TryGetUIntAt((long*)(_address + offset), result) : false;
+        public bool TryDerefLong(int offset, long* result) => (!IsAddressPointerNull && result != (long*)0) ? this.memoryAccess.TryGetLongAt((long*)(_address + offset), result) : false;
+        public bool TryDerefULong(int offset, ulong* result) => (!IsAddressPointerNull && result != (ulong*)0) ? this.memoryAccess.TryGetULongAt((long*)(_address + offset), result) : false;
+        public bool TryDerefFloat(int offset, float* result) => (!IsAddressPointerNull && result != (float*)0) ? this.memoryAccess.TryGetFloatAt((long*)(_address + offset), result) : false;
+        public bool TryDerefDouble(int offset, double* result) => (!IsAddressPointerNull && result != (double*)0) ? this.memoryAccess.TryGetDoubleAt((long*)(_address + offset), result) : false;
+#else
+        public bool TryDerefByteArray(int offset, int size, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetByteArrayAt((int*)(_address + offset), size, result) : false;
+        public bool TryDerefSByte(int offset, sbyte* result) => (!IsAddressPointerNull && result != (sbyte*)0) ? this.memoryAccess.TryGetSByteAt((int*)(_address + offset), result) : false;
+        public bool TryDerefByte(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetByteAt((int*)(_address + offset), result) : false;
+        public bool TryDerefShort(int offset, short* result) => (!IsAddressPointerNull && result != (short*)0) ? this.memoryAccess.TryGetShortAt((int*)(_address + offset), result) : false;
+        public bool TryDerefUShort(int offset, ushort* result) => (!IsAddressPointerNull && result != (ushort*)0) ? this.memoryAccess.TryGetUShortAt((int*)(_address + offset), result) : false;
+        public bool TryDerefInt24(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetInt24At((int*)(_address + offset), result) : false;
+        public bool TryDerefUInt24(int offset, byte* result) => (!IsAddressPointerNull && result != (byte*)0) ? this.memoryAccess.TryGetUInt24At((int*)(_address + offset), result) : false;
+        public bool TryDerefInt(int offset, int* result) => (!IsAddressPointerNull && result != (int*)0) ? this.memoryAccess.TryGetIntAt((int*)(_address + offset), result) : false;
+        public bool TryDerefUInt(int offset, uint* result) => (!IsAddressPointerNull && result != (uint*)0) ? this.memoryAccess.TryGetUIntAt((int*)(_address + offset), result) : false;
+        public bool TryDerefLong(int offset, long* result) => (!IsAddressPointerNull && result != (long*)0) ? this.memoryAccess.TryGetLongAt((int*)(_address + offset), result) : false;
+        public bool TryDerefULong(int offset, ulong* result) => (!IsAddressPointerNull && result != (ulong*)0) ? this.memoryAccess.TryGetULongAt((int*)(_address + offset), result) : false;
+        public bool TryDerefFloat(int offset, float* result) => (!IsAddressPointerNull && result != (float*)0) ? this.memoryAccess.TryGetFloatAt((int*)(_address + offset), result) : false;
+        public bool TryDerefDouble(int offset, double* result) => (!IsAddressPointerNull && result != (double*)0) ? this.memoryAccess.TryGetDoubleAt((int*)(_address + offset), result) : false;
+#endif
     }
 }
