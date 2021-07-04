@@ -103,6 +103,7 @@ namespace ProcessMemory
 #endif
         }
 
+        public T DerefT<T>(int offset) where T : unmanaged => (!IsNullPointer) ? this.memoryAccess.GetAt<T>(IntPtr.Add(Address, offset)) : default;
         public byte[] DerefByteArray(int offset, int size) => (!IsNullPointer) ? this.memoryAccess.GetByteArrayAt(IntPtr.Add(Address, offset), size) : default;
         public sbyte DerefSByte(int offset) => (!IsNullPointer) ? this.memoryAccess.GetSByteAt(IntPtr.Add(Address, offset)) : default;
         public byte DerefByte(int offset) => (!IsNullPointer) ? this.memoryAccess.GetByteAt(IntPtr.Add(Address, offset)) : default;
@@ -118,6 +119,7 @@ namespace ProcessMemory
         public double DerefDouble(int offset) => (!IsNullPointer) ? this.memoryAccess.GetDoubleAt(IntPtr.Add(Address, offset)) : default;
 
         public bool TryDerefByteArray(int offset, int size, IntPtr result) => (!IsNullPointer && result != IntPtr.Zero) ? this.memoryAccess.TryGetByteArrayAt(IntPtr.Add(Address, offset), size, result) : false;
+        public bool TryDerefT<T>(int offset, ref T result) where T : unmanaged => (!IsNullPointer) ? this.memoryAccess.TryGetAt(IntPtr.Add(Address, offset), ref result) : false;
         public bool TryDerefSByte(int offset, ref sbyte result) => (!IsNullPointer) ? this.memoryAccess.TryGetSByteAt(IntPtr.Add(Address, offset), ref result) : false;
         public bool TryDerefByte(int offset, ref byte result) => (!IsNullPointer) ? this.memoryAccess.TryGetByteAt(IntPtr.Add(Address, offset), ref result) : false;
         public bool TryDerefShort(int offset, ref short result) => (!IsNullPointer) ? this.memoryAccess.TryGetShortAt(IntPtr.Add(Address, offset), ref result) : false;
@@ -133,6 +135,7 @@ namespace ProcessMemory
 
 #if x64
         public bool TryDerefByteArray(int offset, int size, byte* result) => (!IsNullPointer && result != (byte*)0) ? this.memoryAccess.TryGetByteArrayAt((long*)(_address + offset), size, result) : false;
+        public bool TryDerefT<T>(int offset, T* result) where T : unmanaged => (!IsNullPointer && result != (T*)0) ? this.memoryAccess.TryGetAt<T>((long*)(_address + offset), ref *result) : false;
         public bool TryDerefSByte(int offset, sbyte* result) => (!IsNullPointer && result != (sbyte*)0) ? this.memoryAccess.TryGetSByteAt((long*)(_address + offset), result) : false;
         public bool TryDerefByte(int offset, byte* result) => (!IsNullPointer && result != (byte*)0) ? this.memoryAccess.TryGetByteAt((long*)(_address + offset), result) : false;
         public bool TryDerefShort(int offset, short* result) => (!IsNullPointer && result != (short*)0) ? this.memoryAccess.TryGetShortAt((long*)(_address + offset), result) : false;
@@ -147,6 +150,7 @@ namespace ProcessMemory
         public bool TryDerefDouble(int offset, double* result) => (!IsNullPointer && result != (double*)0) ? this.memoryAccess.TryGetDoubleAt((long*)(_address + offset), result) : false;
 #else
         public bool TryDerefByteArray(int offset, int size, byte* result) => (!IsNullPointer && result != (byte*)0) ? this.memoryAccess.TryGetByteArrayAt((int*)(_address + offset), size, result) : false;
+        public bool TryDerefT<T>(int offset, T* result) where T : unmanaged => (!IsNullPointer && result != (T*)0) ? this.memoryAccess.TryGetAt<T>((int*)(_address + offset), ref *result) : false;
         public bool TryDerefSByte(int offset, sbyte* result) => (!IsNullPointer && result != (sbyte*)0) ? this.memoryAccess.TryGetSByteAt((int*)(_address + offset), result) : false;
         public bool TryDerefByte(int offset, byte* result) => (!IsNullPointer && result != (byte*)0) ? this.memoryAccess.TryGetByteAt((int*)(_address + offset), result) : false;
         public bool TryDerefShort(int offset, short* result) => (!IsNullPointer && result != (short*)0) ? this.memoryAccess.TryGetShortAt((int*)(_address + offset), result) : false;
