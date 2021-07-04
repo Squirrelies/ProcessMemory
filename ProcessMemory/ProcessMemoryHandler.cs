@@ -78,26 +78,48 @@ namespace ProcessMemory
             }
         }
 
-        public bool TrySetByteArrayAt(IntPtr offset, int size, IntPtr result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
-
-        public bool TrySetByteArrayAt(IntPtr offset, int size, void* result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
-
-#if x64
-        public bool TrySetByteArrayAt(long* offset, int size, IntPtr result)
-#else
-        public bool TrySetByteArrayAt(int* offset, int size, IntPtr result)
-#endif
+        public byte[] GetByteArrayAt(IntPtr offset, int size)
         {
-            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
+            byte[] returnValue = new byte[size];
+            fixed (byte* rvp = returnValue)
+            {
+                ReadProcessMemory(ProcessHandle, offset, rvp, size, out IntPtr bytesRead);
+            }
+            return returnValue;
         }
 
 #if x64
-        public bool TrySetByteArrayAt(long* offset, int size, void* result)
+        public byte[] GetByteArrayAt(long* offset, int size)
 #else
-        public bool TrySetByteArrayAt(int* offset, int size, void* result)
+        public byte[] GetByteArrayAt(int* offset, int size)
 #endif
         {
-            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
+            byte[] returnValue = new byte[size];
+            fixed (byte* rvp = returnValue)
+            {
+                ReadProcessMemory(ProcessHandle, offset, rvp, size, out IntPtr bytesRead);
+            }
+            return returnValue;
+        }
+
+        public int SetByteArrayAt(IntPtr offset, byte[] input)
+        {
+            fixed (byte* ip = input)
+            {
+                return WriteProcessMemory(ProcessHandle, offset, ip, input.Length, out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
+            }
+        }
+
+#if x64
+        public int SetByteArrayAt(long* offset, byte[] input)
+#else
+        public int SetByteArrayAt(int* offset, byte[] input)
+#endif
+        {
+            fixed (byte* ip = input)
+            {
+                return WriteProcessMemory(ProcessHandle, offset, ip, input.Length, out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
+            }
         }
 
         public bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesRead);
@@ -122,6 +144,28 @@ namespace ProcessMemory
         {
             IntPtr bytesRead = IntPtr.Zero;
             return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
+        }
+
+        public bool TrySetByteArrayAt(IntPtr offset, int size, IntPtr result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
+
+        public bool TrySetByteArrayAt(IntPtr offset, int size, void* result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
+
+#if x64
+        public bool TrySetByteArrayAt(long* offset, int size, IntPtr result)
+#else
+        public bool TrySetByteArrayAt(int* offset, int size, IntPtr result)
+#endif
+        {
+            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
+        }
+
+#if x64
+        public bool TrySetByteArrayAt(long* offset, int size, void* result)
+#else
+        public bool TrySetByteArrayAt(int* offset, int size, void* result)
+#endif
+        {
+            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
         }
 
         public T GetAt<T>(IntPtr offset) where T : unmanaged
@@ -154,7 +198,7 @@ namespace ProcessMemory
 #if x64
         public int SetAt<T>(long* offset, T value) where T : unmanaged
 #else
-        public int SetAt<T>(int* offset, ref T value) where T : unmanaged
+        public int SetAt<T>(int* offset, T value) where T : unmanaged
 #endif
         {
             return WriteProcessMemory(ProcessHandle, offset, &value, sizeof(T), out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
