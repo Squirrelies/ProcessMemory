@@ -30,7 +30,10 @@ namespace ProcessMemory
         public static extern int GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] char[] lpBaseName, int nSize);
 
 
-#if x64
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] ReadOnlySpan<byte> lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
@@ -40,34 +43,9 @@ namespace ProcessMemory
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-#else
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-#endif
-
+        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, Span<byte> lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
@@ -77,6 +55,60 @@ namespace ProcessMemory
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+#if x64
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] ReadOnlySpan<byte> lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, long* lpBaseAddress, Span<byte> lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, long* lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, long* lpBaseAddress, IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, long* lpBaseAddress, void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+#else
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] ReadOnlySpan<byte> lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, int* lpBaseAddress, [Out] void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
+
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, int* lpBaseAddress, Span<byte> lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, int* lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, int* lpBaseAddress, IntPtr lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, int* lpBaseAddress, void* lpBuffer, int nSize, out IntPtr lpNumberOfBytesWritten);
+#endif
+
+
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);

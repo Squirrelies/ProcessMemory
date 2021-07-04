@@ -1,8 +1,5 @@
-﻿using ProcessMemory.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
 using static ProcessMemory.PInvoke;
 
 namespace ProcessMemory
@@ -81,42 +78,31 @@ namespace ProcessMemory
             }
         }
 
-        public byte[] GetByteArrayAt(IntPtr offset, int size)
-        {
-            byte[] returnValue = new byte[size];
-            IntPtr bytesRead = IntPtr.Zero;
-            if (!ReadProcessMemory(ProcessHandle, offset, returnValue, size, out bytesRead))
-            {
-                int win32Error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(win32Error, string.Format("{0}: {1}: {2}", ((Win32Error)win32Error).ToString(), bytesRead.ToInt32(), GetMemoryProtectFlags(offset)));
-            }
+        public bool TrySetByteArrayAt(IntPtr offset, int size, IntPtr result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
 
-            return returnValue;
+        public bool TrySetByteArrayAt(IntPtr offset, int size, void* result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
+
+#if x64
+        public bool TrySetByteArrayAt(long* offset, int size, IntPtr result)
+#else
+        public bool TrySetByteArrayAt(int* offset, int size, IntPtr result)
+#endif
+        {
+            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
         }
 
-        public int SetByteArrayAt(IntPtr offset, byte[] data)
+#if x64
+        public bool TrySetByteArrayAt(long* offset, int size, void* result)
+#else
+        public bool TrySetByteArrayAt(int* offset, int size, void* result)
+#endif
         {
-            IntPtr bytesWritten = IntPtr.Zero;
-            if (!WriteProcessMemory(ProcessHandle, offset, data, data.Length, out bytesWritten))
-            {
-                int win32Error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(win32Error, ((Win32Error)win32Error).ToString());
-            }
-
-            return bytesWritten.ToInt32();
+            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
         }
 
-        public bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result)
-        {
-            IntPtr bytesRead = IntPtr.Zero;
-            return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
-        }
+        public bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesRead);
 
-        public bool TryGetByteArrayAt(IntPtr offset, int size, void* result)
-        {
-            IntPtr bytesRead = IntPtr.Zero;
-            return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
-        }
+        public bool TryGetByteArrayAt(IntPtr offset, int size, void* result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesRead);
 
 #if x64
         public bool TryGetByteArrayAt(long* offset, int size, IntPtr result)
@@ -138,84 +124,160 @@ namespace ProcessMemory
             return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
         }
 
-        public sbyte GetSByteAt(IntPtr offset) => (sbyte)GetByteArrayAt(offset, 1)[0];
-        public byte GetByteAt(IntPtr offset) => GetByteArrayAt(offset, 1)[0];
-        public short GetShortAt(IntPtr offset) => HighPerfBitConverter.ToInt16(GetByteArrayAt(offset, 2), 0);
-        public ushort GetUShortAt(IntPtr offset) => HighPerfBitConverter.ToUInt16(GetByteArrayAt(offset, 2), 0);
-        public Int24 GetInt24At(IntPtr offset) => new Int24(GetByteArrayAt(offset, 3), 0);
-        public UInt24 GetUInt24At(IntPtr offset) => new UInt24(GetByteArrayAt(offset, 3), 0);
-        public int GetIntAt(IntPtr offset) => HighPerfBitConverter.ToInt32(GetByteArrayAt(offset, 4), 0);
-        public uint GetUIntAt(IntPtr offset) => HighPerfBitConverter.ToUInt32(GetByteArrayAt(offset, 4), 0);
-        public long GetLongAt(IntPtr offset) => HighPerfBitConverter.ToInt64(GetByteArrayAt(offset, 8), 0);
-        public ulong GetULongAt(IntPtr offset) => HighPerfBitConverter.ToUInt64(GetByteArrayAt(offset, 8), 0);
-        public float GetFloatAt(IntPtr offset) => BitConverter.ToSingle(GetByteArrayAt(offset, 4), 0);
-        public double GetDoubleAt(IntPtr offset) => BitConverter.ToDouble(GetByteArrayAt(offset, 8), 0);
-
-        public int SetSByteAt(IntPtr offset, sbyte value) => SetByteArrayAt(offset, new byte[1] { (byte)value });
-        public int SetByteAt(IntPtr offset, byte value) => SetByteArrayAt(offset, new byte[1] { value });
-        public int SetShortAt(IntPtr offset, short value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetUShortAt(IntPtr offset, ushort value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetInt24At(IntPtr offset, Int24 value) => SetByteArrayAt(offset, value.GetBytes());
-        public int SetUInt24At(IntPtr offset, UInt24 value) => SetByteArrayAt(offset, value.GetBytes());
-        public int SetIntAt(IntPtr offset, int value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetUIntAt(IntPtr offset, uint value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetLongAt(IntPtr offset, long value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetULongAt(IntPtr offset, ulong value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetFloatAt(IntPtr offset, float value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-        public int SetDoubleAt(IntPtr offset, double value) => SetByteArrayAt(offset, BitConverter.GetBytes(value));
-
-        public bool TryGetSByteAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetByteAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetShortAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetUShortAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetInt24At(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetUInt24At(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetIntAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetUIntAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetLongAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetULongAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetFloatAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetDoubleAt(IntPtr address, IntPtr result) => TryGetByteArrayAt(address, 8, result);
-
-        public bool TryGetSByteAt(IntPtr address, sbyte* result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetByteAt(IntPtr address, byte* result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetShortAt(IntPtr address, short* result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetUShortAt(IntPtr address, ushort* result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetInt24At(IntPtr address, byte* result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetUInt24At(IntPtr address, byte* result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetIntAt(IntPtr address, int* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetUIntAt(IntPtr address, uint* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetLongAt(IntPtr address, long* result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetULongAt(IntPtr address, ulong* result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetFloatAt(IntPtr address, float* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetDoubleAt(IntPtr address, double* result) => TryGetByteArrayAt(address, 8, result);
+        public T GetAt<T>(IntPtr offset) where T : unmanaged
+        {
+            T* rv = stackalloc T[1];
+            if (ReadProcessMemory(ProcessHandle, offset, rv, sizeof(T), out IntPtr bytesRead))
+                return *rv;
+            else
+                return default;
+        }
 
 #if x64
-        public bool TryGetSByteAt(long* address, sbyte* result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetByteAt(long* address, byte* result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetShortAt(long* address, short* result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetUShortAt(long* address, ushort* result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetInt24At(long* address, byte* result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetUInt24At(long* address, byte* result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetIntAt(long* address, int* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetUIntAt(long* address, uint* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetLongAt(long* address, long* result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetULongAt(long* address, ulong* result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetFloatAt(long* address, float* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetDoubleAt(long* address, double* result) => TryGetByteArrayAt(address, 8, result);
+        public T GetAt<T>(long* offset) where T : unmanaged
 #else
-        public bool TryGetSByteAt(int* address, sbyte* result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetByteAt(int* address, byte* result) => TryGetByteArrayAt(address, 1, result);
-        public bool TryGetShortAt(int* address, short* result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetUShortAt(int* address, ushort* result) => TryGetByteArrayAt(address, 2, result);
-        public bool TryGetInt24At(int* address, byte* result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetUInt24At(int* address, byte* result) => TryGetByteArrayAt(address, 3, result);
-        public bool TryGetIntAt(int* address, int* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetUIntAt(int* address, uint* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetLongAt(int* address, long* result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetULongAt(int* address, ulong* result) => TryGetByteArrayAt(address, 8, result);
-        public bool TryGetFloatAt(int* address, float* result) => TryGetByteArrayAt(address, 4, result);
-        public bool TryGetDoubleAt(int* address, double* result) => TryGetByteArrayAt(address, 8, result);
+        public T GetAt<T>(int* offset) where T : unmanaged
+#endif
+        {
+            T* rv = stackalloc T[1];
+            if (ReadProcessMemory(ProcessHandle, offset, rv, sizeof(T), out IntPtr bytesRead))
+                return *rv;
+            else
+                return default;
+        }
+
+        public int SetAt<T>(IntPtr offset, T value) where T : unmanaged
+        {
+            return WriteProcessMemory(ProcessHandle, offset, &value, sizeof(T), out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
+        }
+
+#if x64
+        public int SetAt<T>(long* offset, T value) where T : unmanaged
+#else
+        public int SetAt<T>(int* offset, ref T value) where T : unmanaged
+#endif
+        {
+            return WriteProcessMemory(ProcessHandle, offset, &value, sizeof(T), out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
+        }
+
+        public bool TryGetAt<T>(IntPtr offset, ref T value) where T : unmanaged
+        {
+            fixed (T* pointer = &value)
+            {
+                return ReadProcessMemory(ProcessHandle, offset, pointer, sizeof(T), out IntPtr bytesRead);
+            }
+        }
+
+#if x64
+        public bool TryGetAt<T>(long* offset, ref T value) where T : unmanaged
+#else
+        public bool TryGetAt<T>(int* offset, ref T value) where T : unmanaged
+#endif
+        {
+            fixed (T* pointer = &value)
+            {
+                return ReadProcessMemory(ProcessHandle, offset, pointer, sizeof(T), out IntPtr bytesRead);
+            }
+        }
+
+        public bool TrySetAt<T>(IntPtr offset, ref T value) where T : unmanaged
+        {
+            fixed (T* pointer = &value)
+            {
+                return WriteProcessMemory(ProcessHandle, offset, pointer, sizeof(T), out IntPtr bytesRead);
+            }
+        }
+
+#if x64
+        public bool TrySetAt<T>(long* offset, ref T value) where T : unmanaged
+#else
+        public bool TrySetAt<T>(int* offset, ref T value) where T : unmanaged
+#endif
+        {
+            fixed (T* pointer = &value)
+            {
+                return WriteProcessMemory(ProcessHandle, offset, pointer, sizeof(T), out IntPtr bytesRead);
+            }
+        }
+
+        public sbyte GetSByteAt(IntPtr offset) => GetAt<sbyte>(offset);
+        public byte GetByteAt(IntPtr offset) => GetAt<byte>(offset);
+        public short GetShortAt(IntPtr offset) => GetAt<short>(offset);
+        public ushort GetUShortAt(IntPtr offset) => GetAt<ushort>(offset);
+        //public Int24 GetInt24At(IntPtr offset) => GetAt<Int24>(offset);
+        //public UInt24 GetUInt24At(IntPtr offset) => GetAt<UInt24>(offset);
+        public int GetIntAt(IntPtr offset) => GetAt<int>(offset);
+        public uint GetUIntAt(IntPtr offset) => GetAt<uint>(offset);
+        public long GetLongAt(IntPtr offset) => GetAt<long>(offset);
+        public ulong GetULongAt(IntPtr offset) => GetAt<ulong>(offset);
+        public float GetFloatAt(IntPtr offset) => GetAt<float>(offset);
+        public double GetDoubleAt(IntPtr offset) => GetAt<double>(offset);
+
+        public int SetSByteAt(IntPtr offset, sbyte value) => SetAt(offset, value);
+        public int SetByteAt(IntPtr offset, byte value) => SetAt(offset, value);
+        public int SetShortAt(IntPtr offset, short value) => SetAt(offset, value);
+        public int SetUShortAt(IntPtr offset, ushort value) => SetAt(offset, value);
+        //public int SetInt24At(IntPtr offset, Int24 value) => SetAt(offset, value);
+        //public int SetUInt24At(IntPtr offset, UInt24 value) => SetAt(offset, value);
+        public int SetIntAt(IntPtr offset, int value) => SetAt(offset, value);
+        public int SetUIntAt(IntPtr offset, uint value) => SetAt(offset, value);
+        public int SetLongAt(IntPtr offset, long value) => SetAt(offset, value);
+        public int SetULongAt(IntPtr offset, ulong value) => SetAt(offset, value);
+        public int SetFloatAt(IntPtr offset, float value) => SetAt(offset, value);
+        public int SetDoubleAt(IntPtr offset, double value) => SetAt(offset, value);
+
+        public bool TryGetSByteAt(IntPtr address, ref sbyte result) => TryGetAt(address, ref result);
+        public bool TryGetByteAt(IntPtr address, ref byte result) => TryGetAt(address, ref result);
+        public bool TryGetShortAt(IntPtr address, ref short result) => TryGetAt(address, ref result);
+        public bool TryGetUShortAt(IntPtr address, ref ushort result) => TryGetAt(address, ref result);
+        //public bool TryGetInt24At(IntPtr address, ref Int24 result) => TryGetAt(address, ref result);
+        //public bool TryGetUInt24At(IntPtr address, ref UInt24 result) => TryGetAt(address, ref result);
+        public bool TryGetIntAt(IntPtr address, ref int result) => TryGetAt(address, ref result);
+        public bool TryGetUIntAt(IntPtr address, ref uint result) => TryGetAt(address, ref result);
+        public bool TryGetLongAt(IntPtr address, ref long result) => TryGetAt(address, ref result);
+        public bool TryGetULongAt(IntPtr address, ref ulong result) => TryGetAt(address, ref result);
+        public bool TryGetFloatAt(IntPtr address, ref float result) => TryGetAt(address, ref result);
+        public bool TryGetDoubleAt(IntPtr address, ref double result) => TryGetAt(address, ref result);
+
+        public bool TryGetSByteAt(IntPtr address, sbyte* result) => TryGetAt(address, ref *result);
+        public bool TryGetByteAt(IntPtr address, byte* result) => TryGetAt(address, ref *result);
+        public bool TryGetShortAt(IntPtr address, short* result) => TryGetAt(address, ref *result);
+        public bool TryGetUShortAt(IntPtr address, ushort* result) => TryGetAt(address, ref *result);
+        //public bool TryGetInt24At(IntPtr address, Int24* result) => TryGetAt(address, ref *result);
+        //public bool TryGetUInt24At(IntPtr address, UInt24* result) => TryGetAt(address, ref *result);
+        public bool TryGetIntAt(IntPtr address, int* result) => TryGetAt(address, ref *result);
+        public bool TryGetUIntAt(IntPtr address, uint* result) => TryGetAt(address, ref *result);
+        public bool TryGetLongAt(IntPtr address, long* result) => TryGetAt(address, ref *result);
+        public bool TryGetULongAt(IntPtr address, ulong* result) => TryGetAt(address, ref *result);
+        public bool TryGetFloatAt(IntPtr address, float* result) => TryGetAt(address, ref *result);
+        public bool TryGetDoubleAt(IntPtr address, double* result) => TryGetAt(address, ref *result);
+
+#if x64
+        public bool TryGetSByteAt(long* address, sbyte* result) => TryGetAt(address, ref *result);
+        public bool TryGetByteAt(long* address, byte* result) => TryGetAt(address, ref *result);
+        public bool TryGetShortAt(long* address, short* result) => TryGetAt(address, ref *result);
+        public bool TryGetUShortAt(long* address, ushort* result) => TryGetAt(address, ref *result);
+        //public bool TryGetInt24At(long* address, Int24* result) => TryGetAt(address, ref *result);
+        //public bool TryGetUInt24At(long* address, UInt24* result) => TryGetAt(address, ref *result);
+        public bool TryGetIntAt(long* address, int* result) => TryGetAt(address, ref *result);
+        public bool TryGetUIntAt(long* address, uint* result) => TryGetAt(address, ref *result);
+        public bool TryGetLongAt(long* address, long* result) => TryGetAt(address, ref *result);
+        public bool TryGetULongAt(long* address, ulong* result) => TryGetAt(address, ref *result);
+        public bool TryGetFloatAt(long* address, float* result) => TryGetAt(address, ref *result);
+        public bool TryGetDoubleAt(long* address, double* result) => TryGetAt(address, ref *result);
+#else
+        public bool TryGetSByteAt(int* address, sbyte* result) => TryGetAt(address, ref *result);
+        public bool TryGetByteAt(int* address, byte* result) => TryGetAt(address, ref *result);
+        public bool TryGetShortAt(int* address, short* result) => TryGetAt(address, ref *result);
+        public bool TryGetUShortAt(int* address, ushort* result) => TryGetAt(address, ref *result);
+        //public bool TryGetInt24At(int* address, Int24* result) => TryGetAt(address, ref *result);
+        //public bool TryGetUInt24At(int* address, UInt24* result) => TryGetAt(address, ref *result);
+        public bool TryGetIntAt(int* address, int* result) => TryGetAt(address, ref *result);
+        public bool TryGetUIntAt(int* address, uint* result) => TryGetAt(address, ref *result);
+        public bool TryGetLongAt(int* address, long* result) => TryGetAt(address, ref *result);
+        public bool TryGetULongAt(int* address, ulong* result) => TryGetAt(address, ref *result);
+        public bool TryGetFloatAt(int* address, float* result) => TryGetAt(address, ref *result);
+        public bool TryGetDoubleAt(int* address, double* result) => TryGetAt(address, ref *result);
 #endif
 
         public static int FindIndexOf(byte[] array, int start, byte[] sequence)
