@@ -15,6 +15,26 @@ namespace ProcessMemory
                 return *(T*)&pb;
         }
 
+        public static unsafe string FromASCIIBytes(this Memory<byte> data) => FromASCIIBytes(data.Span);
+        public static unsafe string FromASCIIBytes(this ReadOnlyMemory<byte> data) => FromASCIIBytes(data.Span);
+        public static unsafe string FromASCIIBytes(this byte[] data) => FromASCIIBytes((ReadOnlySpan<byte>)data);
+        public static unsafe string FromASCIIBytes(this Span<byte> data) => FromASCIIBytes((ReadOnlySpan<byte>)data);
+        public static unsafe string FromASCIIBytes(this ReadOnlySpan<byte> array)
+        {
+            fixed (byte* bp = array) // Get a byte* of the parameter passed in.
+                return new string((sbyte*)bp); // Return a string using our sbyte* which points to where the data is for the byte[], Span<byte>, w/e.
+        }
+
+        public static unsafe string FromUnicodeBytes(this Memory<byte> data) => FromUnicodeBytes(data.Span);
+        public static unsafe string FromUnicodeBytes(this ReadOnlyMemory<byte> data) => FromUnicodeBytes(data.Span);
+        public static unsafe string FromUnicodeBytes(this byte[] data) => FromUnicodeBytes((ReadOnlySpan<byte>)data);
+        public static unsafe string FromUnicodeBytes(this Span<byte> data) => FromUnicodeBytes((ReadOnlySpan<byte>)data);
+        public static unsafe string FromUnicodeBytes(this ReadOnlySpan<byte> array)
+        {
+            fixed (byte* bp = array) // Get a byte* of the parameter passed in.
+                return new string((char*)bp); // Return a string using our char* which points to where the data is for the byte[], Span<byte>, w/e.
+        }
+
         public static ushort EndianSwap16(this ushort value) => (ushort)((value & 0xFFU) << 8 | (value & 0xFF00U) >> 8);
         public static UInt24 EndianSwap24(this UInt24 value) => (value.Value & 0x000000FFU) << 16 | value.Value & 0x0000FF00U | (value.Value & 0x00FF0000U) >> 16;
         public static uint EndianSwap32(this uint value) => (value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 | (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24;

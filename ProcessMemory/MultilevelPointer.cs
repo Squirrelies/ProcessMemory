@@ -104,6 +104,7 @@ namespace ProcessMemory
         }
 
         public T Deref<T>(int offset) where T : unmanaged => (!IsNullPointer) ? this.memoryAccess.GetAt<T>(IntPtr.Add(Address, offset)) : default;
+        public Span<byte> DerefSpanByte(int offset, int size) => (!IsNullPointer) ? this.memoryAccess.GetSpanByteAt(IntPtr.Add(Address, offset), size) : default;
         public byte[] DerefByteArray(int offset, int size) => (!IsNullPointer) ? this.memoryAccess.GetByteArrayAt(IntPtr.Add(Address, offset), size) : default;
         public sbyte DerefSByte(int offset) => (!IsNullPointer) ? this.memoryAccess.GetSByteAt(IntPtr.Add(Address, offset)) : default;
         public byte DerefByte(int offset) => (!IsNullPointer) ? this.memoryAccess.GetByteAt(IntPtr.Add(Address, offset)) : default;
@@ -117,6 +118,8 @@ namespace ProcessMemory
         public ulong DerefULong(int offset) => (!IsNullPointer) ? this.memoryAccess.GetULongAt(IntPtr.Add(Address, offset)) : default;
         public float DerefFloat(int offset) => (!IsNullPointer) ? this.memoryAccess.GetFloatAt(IntPtr.Add(Address, offset)) : default;
         public double DerefDouble(int offset) => (!IsNullPointer) ? this.memoryAccess.GetDoubleAt(IntPtr.Add(Address, offset)) : default;
+        public string DerefASCIIString(int offset, int size) => (!IsNullPointer) ? this.memoryAccess.GetASCIIStringAt(IntPtr.Add(Address, offset), size) : default;
+        public string DerefUnicodeString(int offset, int size) => (!IsNullPointer) ? this.memoryAccess.GetUnicodeStringAt(IntPtr.Add(Address, offset), size) : default;
 
         public bool TryDerefByteArray(int offset, int size, IntPtr result) => (!IsNullPointer && result != IntPtr.Zero) ? this.memoryAccess.TryGetByteArrayAt(IntPtr.Add(Address, offset), size, result) : false;
         public bool TryDeref<T>(int offset, ref T result) where T : unmanaged => (!IsNullPointer) ? this.memoryAccess.TryGetAt(IntPtr.Add(Address, offset), ref result) : false;
@@ -132,6 +135,8 @@ namespace ProcessMemory
         public bool TryDerefULong(int offset, ref ulong result) => (!IsNullPointer) ? this.memoryAccess.TryGetULongAt(IntPtr.Add(Address, offset), ref result) : false;
         public bool TryDerefFloat(int offset, ref float result) => (!IsNullPointer) ? this.memoryAccess.TryGetFloatAt(IntPtr.Add(Address, offset), ref result) : false;
         public bool TryDerefDouble(int offset, ref double result) => (!IsNullPointer) ? this.memoryAccess.TryGetDoubleAt(IntPtr.Add(Address, offset), ref result) : false;
+        public bool TryDerefASCIIString(int offset, int size, ref string result) => (!IsNullPointer) ? this.memoryAccess.TryGetASCIIStringAt(IntPtr.Add(Address, offset), size, ref result) : false;
+        public bool TryDerefUnicodeString(int offset, int size, ref string result) => (!IsNullPointer) ? this.memoryAccess.TryGetUnicodeStringAt(IntPtr.Add(Address, offset), size, ref result) : false;
 
 #if x64
         public bool TryDerefByteArray(int offset, int size, byte* result) => (!IsNullPointer && result != (byte*)0) ? this.memoryAccess.TryGetByteArrayAt((long*)(_address + offset), size, result) : false;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using static ProcessMemory.PInvoke;
 
 namespace ProcessMemory
@@ -78,95 +79,67 @@ namespace ProcessMemory
             }
         }
 
-        public byte[] GetByteArrayAt(IntPtr offset, int size)
+        public Span<byte> GetSpanByteAt(IntPtr offset, int size)
         {
-            byte[] returnValue = new byte[size];
-            fixed (byte* rvp = returnValue)
-            {
-                ReadProcessMemory(ProcessHandle, offset, rvp, size, out IntPtr bytesRead);
-            }
+            Span<byte> returnValue = new byte[size];
+            fixed (byte* bp = returnValue)
+                ReadProcessMemory(ProcessHandle, offset, bp, size, out IntPtr _);
             return returnValue;
         }
-
 #if x64
-        public byte[] GetByteArrayAt(long* offset, int size)
+        public Span<byte> GetSpanByteAt(long* offset, int size) => GetSpanByteAt((IntPtr)offset, size);
 #else
-        public byte[] GetByteArrayAt(int* offset, int size)
+        public Span<byte> GetSpanByteAt(int* offset, int size) => GetSpanByteAt((IntPtr)offset, size);
 #endif
-        {
-            byte[] returnValue = new byte[size];
-            fixed (byte* rvp = returnValue)
-            {
-                ReadProcessMemory(ProcessHandle, offset, rvp, size, out IntPtr bytesRead);
-            }
-            return returnValue;
-        }
 
-        public int SetByteArrayAt(IntPtr offset, byte[] input)
-        {
-            fixed (byte* ip = input)
-            {
-                return WriteProcessMemory(ProcessHandle, offset, ip, input.Length, out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
-            }
-        }
-
+        public byte[] GetByteArrayAt(IntPtr offset, int size) => GetSpanByteAt(offset, size).ToArray();
 #if x64
-        public int SetByteArrayAt(long* offset, byte[] input)
+        public byte[] GetByteArrayAt(long* offset, int size) => GetByteArrayAt((IntPtr)offset, size);
 #else
-        public int SetByteArrayAt(int* offset, byte[] input)
+        public byte[] GetByteArrayAt(int* offset, int size) => GetByteArrayAt((IntPtr)offset, size);
 #endif
-        {
-            fixed (byte* ip = input)
-            {
-                return WriteProcessMemory(ProcessHandle, offset, ip, input.Length, out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
-            }
-        }
 
-        public bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesRead);
-
-        public bool TryGetByteArrayAt(IntPtr offset, int size, void* result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesRead);
-
+        public int SetSpanByteAt(IntPtr offset, Span<byte> input) => WriteProcessMemory(ProcessHandle, offset, input, input.Length, out IntPtr bytesWritten) ? bytesWritten.ToInt32() : 0;
 #if x64
-        public bool TryGetByteArrayAt(long* offset, int size, IntPtr result)
+        public int SetSpanByteAt(long* offset, byte[] input) => SetSpanByteAt((IntPtr)offset, input);
 #else
-        public bool TryGetByteArrayAt(int* offset, int size, IntPtr result)
+        public int SetSpanByteAt(int* offset, byte[] input) => SetSpanByteAt((IntPtr)offset, input);
 #endif
-        {
-            IntPtr bytesRead = IntPtr.Zero;
-            return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
-        }
 
+        public int SetByteArrayAt(IntPtr offset, byte[] input) => SetSpanByteAt(offset, input);
 #if x64
-        public bool TryGetByteArrayAt(long* offset, int size, void* result)
+        public int SetByteArrayAt(long* offset, byte[] input) => SetByteArrayAt((IntPtr)offset, input);
 #else
-        public bool TryGetByteArrayAt(int* offset, int size, void* result)
+        public int SetByteArrayAt(int* offset, byte[] input) => SetByteArrayAt((IntPtr)offset, input);
 #endif
-        {
-            IntPtr bytesRead = IntPtr.Zero;
-            return ReadProcessMemory(ProcessHandle, offset, result, size, out bytesRead);
-        }
 
-        public bool TrySetByteArrayAt(IntPtr offset, int size, IntPtr result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
-
-        public bool TrySetByteArrayAt(IntPtr offset, int size, void* result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
-
+        public bool TryGetByteArrayAt(IntPtr offset, int size, IntPtr result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr _);
 #if x64
-        public bool TrySetByteArrayAt(long* offset, int size, IntPtr result)
+        public bool TryGetByteArrayAt(long* offset, int size, IntPtr result) => TryGetByteArrayAt((IntPtr)offset, size, result);
 #else
-        public bool TrySetByteArrayAt(int* offset, int size, IntPtr result)
+        public bool TryGetByteArrayAt(int* offset, int size, IntPtr result) => TryGetByteArrayAt((IntPtr)offset, size, result);
 #endif
-        {
-            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
-        }
 
+        public bool TryGetByteArrayAt(IntPtr offset, int size, void* result) => ReadProcessMemory(ProcessHandle, offset, result, size, out IntPtr _);
 #if x64
-        public bool TrySetByteArrayAt(long* offset, int size, void* result)
+        public bool TryGetByteArrayAt(long* offset, int size, void* result) => TryGetByteArrayAt((IntPtr)offset, size, result);
 #else
-        public bool TrySetByteArrayAt(int* offset, int size, void* result)
+        public bool TryGetByteArrayAt(int* offset, int size, void* result) => TryGetByteArrayAt((IntPtr)offset, size, result);
 #endif
-        {
-            return WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr bytesWritten);
-        }
+
+        public bool TrySetByteArrayAt(IntPtr offset, int size, IntPtr result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr _);
+#if x64
+        public bool TrySetByteArrayAt(long* offset, int size, IntPtr result) => TrySetByteArrayAt((IntPtr)offset, size, result);
+#else
+        public bool TrySetByteArrayAt(int* offset, int size, IntPtr result) => TrySetByteArrayAt((IntPtr)offset, size, result);
+#endif
+
+        public bool TrySetByteArrayAt(IntPtr offset, int size, void* result) => WriteProcessMemory(ProcessHandle, offset, result, size, out IntPtr _);
+#if x64
+        public bool TrySetByteArrayAt(long* offset, int size, void* result) => TrySetByteArrayAt((IntPtr)offset, size, result);
+#else
+        public bool TrySetByteArrayAt(int* offset, int size, void* result) => TrySetByteArrayAt((IntPtr)offset, size, result);
+#endif
 
         public T GetAt<T>(IntPtr offset) where T : unmanaged
         {
@@ -256,6 +229,8 @@ namespace ProcessMemory
         public ulong GetULongAt(IntPtr offset) => GetAt<ulong>(offset);
         public float GetFloatAt(IntPtr offset) => GetAt<float>(offset);
         public double GetDoubleAt(IntPtr offset) => GetAt<double>(offset);
+        public string GetASCIIStringAt(IntPtr offset, int size) => GetSpanByteAt(offset, size).FromASCIIBytes();
+        public string GetUnicodeStringAt(IntPtr offset, int size) => GetSpanByteAt(offset, size).FromUnicodeBytes();
 
         public int SetSByteAt(IntPtr offset, sbyte value) => SetAt(offset, value);
         public int SetByteAt(IntPtr offset, byte value) => SetAt(offset, value);
@@ -295,6 +270,28 @@ namespace ProcessMemory
         public bool TryGetULongAt(IntPtr address, ulong* result) => TryGetAt(address, ref *result);
         public bool TryGetFloatAt(IntPtr address, float* result) => TryGetAt(address, ref *result);
         public bool TryGetDoubleAt(IntPtr address, double* result) => TryGetAt(address, ref *result);
+        public unsafe bool TryGetASCIIStringAt(IntPtr address, int size, ref string result)
+        {
+            Span<byte> stringSpan = new byte[size];
+            fixed (byte* bp = stringSpan)
+                if (TryGetByteArrayAt(address, size, bp))
+                {
+                    result = stringSpan.FromASCIIBytes();
+                    return true;
+                }
+            return false;
+        }
+        public unsafe bool TryGetUnicodeStringAt(IntPtr address, int size, ref string result)
+        {
+            Span<byte> stringSpan = new byte[size];
+            fixed (byte* bp = stringSpan)
+                if (TryGetByteArrayAt(address, size, bp))
+                {
+                    result = stringSpan.FromUnicodeBytes();
+                    return true;
+                }
+            return false;
+        }
 
 #if x64
         public bool TryGetSByteAt(long* address, sbyte* result) => TryGetAt(address, ref *result);
@@ -309,6 +306,8 @@ namespace ProcessMemory
         public bool TryGetULongAt(long* address, ulong* result) => TryGetAt(address, ref *result);
         public bool TryGetFloatAt(long* address, float* result) => TryGetAt(address, ref *result);
         public bool TryGetDoubleAt(long* address, double* result) => TryGetAt(address, ref *result);
+        public bool TryGetASCIIStringAt(long* address, int size, ref string result) => TryGetASCIIStringAt((IntPtr)address, size, ref result);
+        public bool TryGetUnicodeStringAt(long* address, int size, ref string result) => TryGetUnicodeStringAt((IntPtr)address, size, ref result);
 #else
         public bool TryGetSByteAt(int* address, sbyte* result) => TryGetAt(address, ref *result);
         public bool TryGetByteAt(int* address, byte* result) => TryGetAt(address, ref *result);
@@ -322,6 +321,8 @@ namespace ProcessMemory
         public bool TryGetULongAt(int* address, ulong* result) => TryGetAt(address, ref *result);
         public bool TryGetFloatAt(int* address, float* result) => TryGetAt(address, ref *result);
         public bool TryGetDoubleAt(int* address, double* result) => TryGetAt(address, ref *result);
+        public bool TryGetASCIIStringAt(int* address, int size, ref string result) => TryGetASCIIStringAt((IntPtr)address, size, ref result);
+        public bool TryGetUnicodeStringAt(int* address, int size, ref string result) => TryGetUnicodeStringAt((IntPtr)address, size, ref result);
 #endif
 
         public static int FindIndexOf(byte[] array, int start, byte[] sequence)
