@@ -12,6 +12,7 @@
     <Version>3.0.0.1</Version>
     <FileVersion>3.0.0.1</FileVersion>
     <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
