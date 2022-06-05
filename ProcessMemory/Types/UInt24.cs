@@ -2,14 +2,17 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
+#pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 namespace ProcessMemory.Types
 {
     [DebuggerDisplay("{Value,nq}")]
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 3)]
     public unsafe readonly ref struct UInt24
     {
+#pragma warning disable IDE1006 // Naming Styles
         public const uint MinValue = unchecked(0x00000000); // 0
         public const uint MaxValue = unchecked(0x00FFFFFF); // 16777215
+#pragma warning restore IDE1006 // Naming Styles
 
         [FieldOffset(0x00)]
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -60,3 +63,4 @@ namespace ProcessMemory.Types
         public ReadOnlySpan<byte> GetSpan() => _data;
     }
 }
+#pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
