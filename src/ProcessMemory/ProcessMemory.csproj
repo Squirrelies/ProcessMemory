@@ -10,7 +10,7 @@
 	<PropertyGroup>
 		<Product>Process Memory Access Library ($(Platform))</Product>
 		<Description>A library for reading and writing process memory.</Description>
-		<Company>SpeedRunTool</Company>
+		<Company>Squirrelies</Company>
 		<Authors>$(Company)</Authors>
 		<Copyright>Copyright © 2022 $(Company)</Copyright>
 		<Version>4.0.0-alpha</Version>
