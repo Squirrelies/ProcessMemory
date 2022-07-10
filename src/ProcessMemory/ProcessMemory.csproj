@@ -5,8 +5,32 @@
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Platforms>x64;x86</Platforms>
-		<PackageId>ProcessMemory</PackageId>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Product>Process Memory Access Library ($(Platform))</Product>
+		<Description>A library for reading and writing process memory.</Description>
+		<Company>SpeedRunTool</Company>
+		<Authors>$(Company)</Authors>
+		<Copyright>Copyright © 2022 $(Company)</Copyright>
+		<Version>4.0.0-alpha</Version>
+		<FileVersion>4.0.0</FileVersion>
+		<AssemblyVersion>4.0.0</AssemblyVersion>
 		<AssemblyName>ProcessMemory</AssemblyName>
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageDescription>$(Description)</PackageDescription>
+		<RepositoryUrl>https://github.com/$(Company)/$(PackageId)</RepositoryUrl>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DebugType>embedded</DebugType>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+		<DefineConstants>$(DefineConstants);$(Platform)</DefineConstants>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -21,30 +45,6 @@
 	<PropertyGroup Condition="'$(Platform)'=='x86'">
 		<PackageId>$(PackageId)32</PackageId>
 		<AssemblyName>$(AssemblyName)32</AssemblyName>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<Product>Process Memory Access Library ($(Platform))</Product>
-		<Description>A library for reading and writing process memory.</Description>
-		<Company>SpeedRunTool</Company>
-		<Authors>$(Company)</Authors>
-		<Copyright>Copyright © 2022 $(Company)</Copyright>
-		<Version>4.0.0-alpha</Version>
-		<FileVersion>4.0.0</FileVersion>
-		<AssemblyVersion>4.0.0</AssemblyVersion>
-		<PackageDescription>$(Description)</PackageDescription>
-		<RepositoryUrl>https://github.com/$(Company)/$(PackageId)</RepositoryUrl>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<DebugType>embedded</DebugType>
-		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
-		<DefineConstants>$(DefineConstants);$(Platform)</DefineConstants>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	</PropertyGroup>
 
 	<ItemGroup>
