@@ -2,12 +2,11 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 namespace ProcessMemory.Types
 {
     [DebuggerDisplay("{Value,nq}")]
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 3)]
-    public unsafe readonly ref struct Int24
+    public unsafe readonly struct Int24
     {
 #pragma warning disable IDE1006 // Naming Styles
         public const int MinValue = unchecked((int)0xFF800000); // -8388608
@@ -16,17 +15,13 @@ namespace ProcessMemory.Types
 
         [FieldOffset(0x00)]
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private readonly Span<byte> data;
+        private readonly byte* data = (byte*)Marshal.AllocHGlobal(3);
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public int Value => data[0] | data[1] << 8 | (sbyte)data[2] << 16;
 
-        public Int24(byte[] value, int startIndex = 0)
+        public Int24(byte* value, int startIndex = 0)
         {
-            if (value.Length - startIndex != 3)
-                throw new ArgumentOutOfRangeException();
-
-            data = new byte[3];
             data[0] = value[startIndex + 2];
             data[1] = value[startIndex + 1];
             data[2] = value[startIndex];
@@ -34,7 +29,6 @@ namespace ProcessMemory.Types
 
         public Int24(int value)
         {
-            data = new byte[3];
             data[0] = (byte)(value & 0xFF);
             data[1] = (byte)((value >> 8) & 0xFF);
             data[2] = (byte)((value >> 16) & 0xFF);
@@ -60,7 +54,6 @@ namespace ProcessMemory.Types
         public string ToString(IFormatProvider? provider) => Value.ToString(provider);
         public string ToString(string? format) => Value.ToString(format);
         public string ToString(string? format, IFormatProvider? provider) => Value.ToString(format, provider);
-        public ReadOnlySpan<byte> GetSpan() => data;
+        public ReadOnlySpan<byte> GetSpan() => new ReadOnlySpan<byte>(data, 3);
     }
 }
-#pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.

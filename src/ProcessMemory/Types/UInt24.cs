@@ -2,12 +2,11 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 namespace ProcessMemory.Types
 {
     [DebuggerDisplay("{Value,nq}")]
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 3)]
-    public unsafe readonly ref struct UInt24
+    public unsafe readonly struct UInt24
     {
 #pragma warning disable IDE1006 // Naming Styles
         public const uint MinValue = unchecked(0x00000000); // 0
@@ -16,28 +15,23 @@ namespace ProcessMemory.Types
 
         [FieldOffset(0x00)]
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private readonly Span<byte> _data;
+        private readonly byte* data = (byte*)Marshal.AllocHGlobal(3);
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public uint Value => (uint)(_data[0] | _data[1] << 8 | _data[2] << 16);
+        public uint Value => (uint)(data[0] | data[1] << 8 | data[2] << 16);
 
-        public UInt24(byte[] value, int startIndex = 0)
+        public UInt24(byte* value, int startIndex = 0)
         {
-            if (value.Length - startIndex != 3)
-                throw new ArgumentOutOfRangeException();
-
-            _data = new byte[3];
-            _data[0] = value[startIndex + 2];
-            _data[1] = value[startIndex + 1];
-            _data[2] = value[startIndex];
+            data[0] = value[startIndex + 2];
+            data[1] = value[startIndex + 1];
+            data[2] = value[startIndex];
         }
 
         public UInt24(uint value)
         {
-            _data = new byte[3];
-            _data[0] = (byte)(value & 0xFF);
-            _data[1] = (byte)((value >> 8) & 0xFF);
-            _data[2] = (byte)((value >> 16) & 0xFF);
+            data[0] = (byte)(value & 0xFF);
+            data[1] = (byte)((value >> 8) & 0xFF);
+            data[2] = (byte)((value >> 16) & 0xFF);
         }
 
         public static implicit operator UInt24(uint v) => new UInt24(v);
@@ -60,7 +54,6 @@ namespace ProcessMemory.Types
         public string ToString(IFormatProvider? provider) => Value.ToString(provider);
         public string ToString(string? format) => Value.ToString(format);
         public string ToString(string? format, IFormatProvider? provider) => Value.ToString(format, provider);
-        public ReadOnlySpan<byte> GetSpan() => _data;
+        public ReadOnlySpan<byte> GetSpan() => new ReadOnlySpan<byte>(data, 3);
     }
 }
-#pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.

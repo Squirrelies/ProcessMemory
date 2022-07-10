@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
 using static Windows.Win32.PInvoke;
 using Windows.Win32.System.Threading;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
-using Windows.Win32.System.ProcessStatus;
+using ProcessMemory.Types;
 
 namespace ProcessMemory
 {
@@ -146,8 +144,8 @@ namespace ProcessMemory
         public byte GetByteAt(void* offset) => GetAt<byte>(offset);
         public short GetShortAt(void* offset) => GetAt<short>(offset);
         public ushort GetUShortAt(void* offset) => GetAt<ushort>(offset);
-        //public Int24 GetInt24At(void* offset) => GetAt<Int24>(offset);
-        //public UInt24 GetUInt24At(void* offset) => GetAt<UInt24>(offset);
+        public Int24 GetInt24At(void* offset) => GetAt<Int24>(offset);
+        public UInt24 GetUInt24At(void* offset) => GetAt<UInt24>(offset);
         public int GetIntAt(void* offset) => GetAt<int>(offset);
         public uint GetUIntAt(void* offset) => GetAt<uint>(offset);
         public long GetLongAt(void* offset) => GetAt<long>(offset);
@@ -163,8 +161,8 @@ namespace ProcessMemory
         public nuint SetByteAt(void* offset, byte value) => SetAt(offset, value);
         public nuint SetShortAt(void* offset, short value) => SetAt(offset, value);
         public nuint SetUShortAt(void* offset, ushort value) => SetAt(offset, value);
-        //public nuint SetInt24At(void* offset, Int24 value) => SetAt(offset, value);
-        //public nuint SetUInt24At(void* offset, UInt24 value) => SetAt(offset, value);
+        public nuint SetInt24At(void* offset, Int24 value) => SetAt(offset, value);
+        public nuint SetUInt24At(void* offset, UInt24 value) => SetAt(offset, value);
         public nuint SetIntAt(void* offset, int value) => SetAt(offset, value);
         public nuint SetUIntAt(void* offset, uint value) => SetAt(offset, value);
         public nuint SetLongAt(void* offset, long value) => SetAt(offset, value);
@@ -178,8 +176,8 @@ namespace ProcessMemory
         public bool TryGetByteAt(void* address, ref byte result) => TryGetAt(address, ref result);
         public bool TryGetShortAt(void* address, ref short result) => TryGetAt(address, ref result);
         public bool TryGetUShortAt(void* address, ref ushort result) => TryGetAt(address, ref result);
-        //public bool TryGetInt24At(void* address, ref Int24 result) => TryGetAt(address, ref result);
-        //public bool TryGetUInt24At(void* address, ref UInt24 result) => TryGetAt(address, ref result);
+        public bool TryGetInt24At(void* address, ref Int24 result) => TryGetAt(address, ref result);
+        public bool TryGetUInt24At(void* address, ref UInt24 result) => TryGetAt(address, ref result);
         public bool TryGetIntAt(void* address, ref int result) => TryGetAt(address, ref result);
         public bool TryGetUIntAt(void* address, ref uint result) => TryGetAt(address, ref result);
         public bool TryGetLongAt(void* address, ref long result) => TryGetAt(address, ref result);
@@ -191,8 +189,8 @@ namespace ProcessMemory
         public bool TryGetByteAt(void* address, byte* result) => TryGetAt(address, ref *result);
         public bool TryGetShortAt(void* address, short* result) => TryGetAt(address, ref *result);
         public bool TryGetUShortAt(void* address, ushort* result) => TryGetAt(address, ref *result);
-        //public bool TryGetInt24At(void* address, Int24* result) => TryGetAt(address, ref *result);
-        //public bool TryGetUInt24At(void* address, UInt24* result) => TryGetAt(address, ref *result);
+        public bool TryGetInt24At(void* address, Int24* result) => TryGetAt(address, ref *result);
+        public bool TryGetUInt24At(void* address, UInt24* result) => TryGetAt(address, ref *result);
         public bool TryGetIntAt(void* address, int* result) => TryGetAt(address, ref *result);
         public bool TryGetUIntAt(void* address, uint* result) => TryGetAt(address, ref *result);
         public bool TryGetLongAt(void* address, long* result) => TryGetAt(address, ref *result);
@@ -228,8 +226,8 @@ namespace ProcessMemory
         public bool TryGetByteAt(nuint* address, byte* result) => TryGetAt(address, ref *result);
         public bool TryGetShortAt(nuint* address, short* result) => TryGetAt(address, ref *result);
         public bool TryGetUShortAt(nuint* address, ushort* result) => TryGetAt(address, ref *result);
-        //public bool TryGetInt24At(nuint* address, Int24* result) => TryGetAt(address, ref *result);
-        //public bool TryGetUInt24At(nuint* address, UInt24* result) => TryGetAt(address, ref *result);
+        public bool TryGetInt24At(nuint* address, Int24* result) => TryGetAt(address, ref *result);
+        public bool TryGetUInt24At(nuint* address, UInt24* result) => TryGetAt(address, ref *result);
         public bool TryGetIntAt(nuint* address, int* result) => TryGetAt(address, ref *result);
         public bool TryGetUIntAt(nuint* address, uint* result) => TryGetAt(address, ref *result);
         public bool TryGetLongAt(nuint* address, long* result) => TryGetAt(address, ref *result);

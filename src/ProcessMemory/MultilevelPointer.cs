@@ -46,8 +46,8 @@ namespace ProcessMemory
         public byte DerefByte(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetByteAt(Address + offset) : default;
         public short DerefShort(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetShortAt(Address + offset) : default;
         public ushort DerefUShort(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetUShortAt(Address + offset) : default;
-        //public Int24 DerefInt24(nint offset) => (!IsAddressPointerNull) ? this.memoryAccess.GetInt24At(Address + offset) : default;
-        //public UInt24 DerefUInt24(nint offset) => (!IsAddressPointerNull) ? this.memoryAccess.GetUInt24At(Address + offset) : default;
+        public Int24 DerefInt24(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetInt24At(Address + offset) : default;
+        public UInt24 DerefUInt24(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetUInt24At(Address + offset) : default;
         public int DerefInt(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetIntAt(Address + offset) : default;
         public uint DerefUInt(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetUIntAt(Address + offset) : default;
         public long DerefLong(nint offset) => (!IsNullPointer) ? this.memoryAccess.GetLongAt(Address + offset) : default;
@@ -63,8 +63,8 @@ namespace ProcessMemory
         public bool TryDerefByte(nint offset, ref byte result) => (!IsNullPointer) ? this.memoryAccess.TryGetByteAt(Address + offset, ref result) : false;
         public bool TryDerefShort(nint offset, ref short result) => (!IsNullPointer) ? this.memoryAccess.TryGetShortAt(Address + offset, ref result) : false;
         public bool TryDerefUShort(nint offset, ref ushort result) => (!IsNullPointer) ? this.memoryAccess.TryGetUShortAt(Address + offset, ref result) : false;
-        //public bool TryDerefInt24(nint offset, ref sbyte result) => (!IsAddressPointerNull) ? this.memoryAccess.TryGetInt24At(Address + offset, ref result) : false;
-        //public bool TryDerefUInt24(nint offset, ref sbyte result) => (!IsAddressPointerNull) ? this.memoryAccess.TryGetUInt24At(Address + offset, ref result) : false;
+        public bool TryDerefInt24(nint offset, ref Int24 result) => (!IsNullPointer) ? this.memoryAccess.TryGetInt24At(Address + offset, ref result) : false;
+        public bool TryDerefUInt24(nint offset, ref UInt24 result) => (!IsNullPointer) ? this.memoryAccess.TryGetUInt24At(Address + offset, ref result) : false;
         public bool TryDerefInt(nint offset, ref int result) => (!IsNullPointer) ? this.memoryAccess.TryGetIntAt(Address + offset, ref result) : false;
         public bool TryDerefUInt(nint offset, ref uint result) => (!IsNullPointer) ? this.memoryAccess.TryGetUIntAt(Address + offset, ref result) : false;
         public bool TryDerefLong(nint offset, ref long result) => (!IsNullPointer) ? this.memoryAccess.TryGetLongAt(Address + offset, ref result) : false;
