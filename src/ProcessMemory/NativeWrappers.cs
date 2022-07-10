@@ -1,15 +1,18 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading;
-using static ProcessMemory.PInvoke;
+using static Windows.Win32.PInvoke;
+using Windows.Win32.System.Threading;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.ProcessStatus;
 
 namespace ProcessMemory
 {
     public static class NativeWrappers
     {
-        public static bool GetProcessWoW64(int pid)
+        public static bool GetProcessWoW64(uint pid)
         {
-            IntPtr processHandle = OpenProcess(ProcessAccessFlags.QueryInformation, false, pid);
+            HANDLE processHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION, false, pid);
             try
             {
                 return GetProcessWoW64(processHandle);
@@ -20,27 +23,28 @@ namespace ProcessMemory
             }
         }
 
-        public static bool GetProcessWoW64(IntPtr processHandle)
+        public unsafe static bool GetProcessWoW64(HANDLE processHandle)
         {
-            bool returnValue = false;
+            BOOL returnValue = new BOOL();
 
-            if (!IsWow64Process(processHandle, ref returnValue))
+            if (!IsWow64Process(processHandle, &returnValue))
                 throw new Win32Exception();
 
             return returnValue;
         }
 
-        public static string GetProcessPath(int pid)
+        public unsafe static string? GetProcessPath(uint pid)
         {
-            IntPtr processHandle = OpenProcess(ProcessAccessFlags.QueryLimitedInformation, false, pid);
+            HANDLE processHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
 
             try
             {
                 // Query process image name.
-                char[] imageFileName = new char[2048];
-                int imageFileNameSize = imageFileName.Length;
-                if (QueryFullProcessImageNameW(processHandle, 0, imageFileName, ref imageFileNameSize))
-                    return new string(imageFileName, 0, imageFileNameSize);
+                char* imageFileNamePtr = stackalloc char[2048];
+                PWSTR imageFileName = new PWSTR(imageFileNamePtr);
+                uint imageFileNameSize = (uint)imageFileName.Length;
+                if (QueryFullProcessImageNameW(processHandle, PROCESS_NAME_FORMAT.PROCESS_NAME_WIN32, imageFileName, &imageFileNameSize))
+                    return imageFileName.ToString();
                 else
                     return null;
             }
@@ -50,25 +54,26 @@ namespace ProcessMemory
             }
         }
 
-        public unsafe static IntPtr GetProcessBaseAddress(int pid, ListModules moduleTypes = ListModules.LIST_MODULES_ALL)
+        public unsafe static HINSTANCE GetProcessBaseAddress(uint pid, ENUM_PROCESS_MODULES_EX_FLAGS moduleTypes = ENUM_PROCESS_MODULES_EX_FLAGS.LIST_MODULES_ALL)
         {
-            IntPtr processHandle = OpenProcess(ProcessAccessFlags.QueryLimitedInformation | ProcessAccessFlags.VirtualMemoryRead, false, pid);
+            HANDLE processHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ, false, pid);
 
             try
             {
                 // Query process image name.
-                char[] imageFileName = new char[2048];
-                int imageFileNameSize = imageFileName.Length;
-                if (QueryFullProcessImageNameW(processHandle, 0, imageFileName, ref imageFileNameSize))
+                char* imageFileNamePtr = stackalloc char[2048];
+                PWSTR imageFileName = new PWSTR(imageFileNamePtr);
+                uint imageFileNameSize = (uint)imageFileName.Length;
+                if (QueryFullProcessImageNameW(processHandle, PROCESS_NAME_FORMAT.PROCESS_NAME_WIN32, imageFileName, &imageFileNameSize))
                 {
                     // Query process handle's modules.
-                    IntPtr[] hModules = new IntPtr[1024];
-                    int cb = 1024 * sizeof(long);
-                    int lpcbNeeded = 0;
-                    bool enumProcessModulesExReturn = false;
-                    fixed (IntPtr* lphModule = hModules)
+                    HINSTANCE[] hModules = new HINSTANCE[1024];
+                    uint cb = (uint)(sizeof(HINSTANCE) * 1024U);
+                    uint lpcbNeeded = 0;
+                    BOOL enumProcessModulesExReturn = new BOOL();
+                    fixed (HINSTANCE* lphModule = hModules)
                     {
-                        enumProcessModulesExReturn = EnumProcessModulesEx(processHandle, lphModule, cb, out lpcbNeeded, moduleTypes);
+                        enumProcessModulesExReturn = K32EnumProcessModulesEx(processHandle, lphModule, cb, &lpcbNeeded, moduleTypes);
 
                         // If we failed, attempt to repeat the run a few times.
                         if (!enumProcessModulesExReturn)
@@ -88,7 +93,7 @@ namespace ProcessMemory
 
                             for (int i = 0; i < 50; ++i)
                             {
-                                enumProcessModulesExReturn = EnumProcessModulesEx(processHandle, lphModule, cb, out lpcbNeeded, moduleTypes);
+                                enumProcessModulesExReturn = K32EnumProcessModulesEx(processHandle, lphModule, cb, &lpcbNeeded, moduleTypes);
                                 if (enumProcessModulesExReturn)
                                     break; // If we succeeded, break out of the loop early.
 
@@ -101,14 +106,15 @@ namespace ProcessMemory
                     // If we successfully retrieved an array of process modules, enumerate through them to find the main module.
                     if (enumProcessModulesExReturn)
                     {
-                        int moduleCount = lpcbNeeded / sizeof(long);
-                        for (int i = 0; i < moduleCount; i++)
+                        uint moduleCount = lpcbNeeded / sizeof(long);
+                        for (uint i = 0; i < moduleCount; i++)
                         {
-                            char[] moduleFileName = new char[2048];
-                            int moduleFileNameSize = GetModuleFileNameEx(processHandle, hModules[i], moduleFileName, moduleFileName.Length);
+                            char* moduleFileNamePtr = stackalloc char[2048];
+                            PWSTR moduleFileName = new PWSTR(imageFileNamePtr);
+                            uint moduleFileNameSize = K32GetModuleFileNameExW(processHandle, hModules[i], moduleFileName, (uint)moduleFileName.Length);
 
                             // Compare the module name with the name of the process image.
-                            if (imageFileNameSize == moduleFileNameSize && string.Equals(new string(imageFileName, 0, imageFileNameSize), new string(moduleFileName, 0, moduleFileNameSize), StringComparison.InvariantCultureIgnoreCase))
+                            if (imageFileNameSize == moduleFileNameSize && string.Equals(imageFileName.ToString(), moduleFileName.ToString(), StringComparison.InvariantCultureIgnoreCase))
                             {
                                 // We found the main module, return it's base address.
                                 return hModules[i];
@@ -120,7 +126,7 @@ namespace ProcessMemory
                 }
 
                 // If we reach this point, we didn't find the main module...
-                return IntPtr.Zero;
+                return new HINSTANCE();
             }
             finally
             {
