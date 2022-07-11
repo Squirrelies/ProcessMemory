@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using static Windows.Win32.PInvoke;
 using Windows.Win32.System.Threading;
 using Windows.Win32.Foundation;
@@ -65,10 +66,10 @@ namespace ProcessMemory
                 ReadProcessMemory(ProcessHandle, offset, bp, size, &d);
             return returnValue;
         }
-        public Span<byte> GetSpanByteAt(nuint* offset, nuint size) => GetSpanByteAt(offset, size);
+        public Span<byte> GetSpanByteAt(nuint offset, nuint size) => GetSpanByteAt((void*)offset, size);
 
         public byte[] GetByteArrayAt(void* offset, nuint size) => GetSpanByteAt(offset, size).ToArray();
-        public byte[] GetByteArrayAt(nuint* offset, nuint size) => GetByteArrayAt(offset, size);
+        public byte[] GetByteArrayAt(nuint offset, nuint size) => GetByteArrayAt((void*)offset, size);
 
         public nuint SetSpanByteAt(void* offset, Span<byte> input)
         {
@@ -76,16 +77,16 @@ namespace ProcessMemory
             fixed (byte* inputPtr = input)
                 return WriteProcessMemory(ProcessHandle, offset, inputPtr, (nuint)input.Length, &lpBytesWritten) ? lpBytesWritten : 0;
         }
-        public nuint SetSpanByteAt(nuint* offset, byte[] input) => SetSpanByteAt(offset, input);
+        public nuint SetSpanByteAt(nuint offset, byte[] input) => SetSpanByteAt((void*)offset, input);
 
         public nuint SetByteArrayAt(void* offset, byte[] input) => SetSpanByteAt(offset, input);
-        public nuint SetByteArrayAt(nuint* offset, byte[] input) => SetByteArrayAt(offset, input);
+        public nuint SetByteArrayAt(nuint offset, byte[] input) => SetByteArrayAt((void*)offset, input);
 
         public bool TryGetByteArrayAt(void* offset, nuint size, void* result) => ReadProcessMemory(ProcessHandle, offset, result, size, null);
-        public bool TryGetByteArrayAt(nuint* offset, nuint size, void* result) => TryGetByteArrayAt(offset, size, result);
+        public bool TryGetByteArrayAt(nuint offset, nuint size, void* result) => TryGetByteArrayAt((void*)offset, size, result);
 
         public bool TrySetByteArrayAt(void* offset, nuint size, void* result) => WriteProcessMemory(ProcessHandle, offset, result, size, null);
-        public bool TrySetByteArrayAt(nuint* offset, nuint size, void* result) => TrySetByteArrayAt(offset, size, result);
+        public bool TrySetByteArrayAt(nuint offset, nuint size, void* result) => TrySetByteArrayAt((void*)offset, size, result);
 
         public T GetAt<T>(void* offset) where T : unmanaged
         {
@@ -93,18 +94,19 @@ namespace ProcessMemory
             if (ReadProcessMemory(ProcessHandle, offset, rv, (nuint)sizeof(T), null))
                 return *rv;
             else
+            {
+                Win32Error error = (Win32Error)Marshal.GetLastWin32Error();
                 return default;
+            }
         }
-
-        public T GetAt<T>(nuint* offset) where T : unmanaged => GetAt<T>(offset);
+        public T GetAt<T>(nuint offset) where T : unmanaged => GetAt<T>((void*)offset);
 
         public nuint SetAt<T>(void* offset, T value) where T : unmanaged
         {
             nuint lpBytesWritten = 0;
             return WriteProcessMemory(ProcessHandle, offset, &value, (nuint)sizeof(T), &lpBytesWritten) ? lpBytesWritten : 0;
         }
-
-        public nuint SetAt<T>(nuint* offset, T value) where T : unmanaged => SetAt<T>(offset, value);
+        public nuint SetAt<T>(nuint offset, T value) where T : unmanaged => SetAt<T>((void*)offset, value);
 
         public bool TryGetAt<T>(void* offset, ref T value) where T : unmanaged
         {
@@ -113,14 +115,7 @@ namespace ProcessMemory
                 return ReadProcessMemory(ProcessHandle, offset, pointer, (nuint)sizeof(T), null);
             }
         }
-
-        public bool TryGetAt<T>(nuint* offset, ref T value) where T : unmanaged
-        {
-            fixed (T* pointer = &value)
-            {
-                return ReadProcessMemory(ProcessHandle, offset, pointer, (nuint)sizeof(T), null);
-            }
-        }
+        public bool TryGetAt<T>(nuint offset, ref T value) where T : unmanaged => TryGetAt<T>((void*)offset, ref value);
 
         public bool TrySetAt<T>(void* offset, ref T value) where T : unmanaged
         {
@@ -129,14 +124,7 @@ namespace ProcessMemory
                 return WriteProcessMemory(ProcessHandle, offset, pointer, (nuint)sizeof(T), null);
             }
         }
-
-        public bool TrySetAt<T>(nuint* offset, ref T value) where T : unmanaged
-        {
-            fixed (T* pointer = &value)
-            {
-                return WriteProcessMemory(ProcessHandle, offset, pointer, (nuint)sizeof(T), null);
-            }
-        }
+        public bool TrySetAt<T>(nuint offset, ref T value) where T : unmanaged => TrySetAt<T>((void*)offset, ref value);
 
         public nint GetNIntAt(void* offset) => GetAt<nint>(offset);
         public nuint GetNUIntAt(void* offset) => GetAt<nuint>(offset);
@@ -220,22 +208,22 @@ namespace ProcessMemory
             return false;
         }
 
-        public bool TryGetNIntAt(nuint* address, nint* result) => TryGetAt(address, ref *result);
-        public bool TryGetNUIntAt(nuint* address, nuint* result) => TryGetAt(address, ref *result);
-        public bool TryGetSByteAt(nuint* address, sbyte* result) => TryGetAt(address, ref *result);
-        public bool TryGetByteAt(nuint* address, byte* result) => TryGetAt(address, ref *result);
-        public bool TryGetShortAt(nuint* address, short* result) => TryGetAt(address, ref *result);
-        public bool TryGetUShortAt(nuint* address, ushort* result) => TryGetAt(address, ref *result);
-        public bool TryGetInt24At(nuint* address, Int24* result) => TryGetAt(address, ref *result);
-        public bool TryGetUInt24At(nuint* address, UInt24* result) => TryGetAt(address, ref *result);
-        public bool TryGetIntAt(nuint* address, int* result) => TryGetAt(address, ref *result);
-        public bool TryGetUIntAt(nuint* address, uint* result) => TryGetAt(address, ref *result);
-        public bool TryGetLongAt(nuint* address, long* result) => TryGetAt(address, ref *result);
-        public bool TryGetULongAt(nuint* address, ulong* result) => TryGetAt(address, ref *result);
-        public bool TryGetFloatAt(nuint* address, float* result) => TryGetAt(address, ref *result);
-        public bool TryGetDoubleAt(nuint* address, double* result) => TryGetAt(address, ref *result);
-        public bool TryGetASCIIStringAt(nuint* address, nuint size, ref string result) => TryGetASCIIStringAt(address, size, ref result);
-        public bool TryGetUnicodeStringAt(nuint* address, nuint size, ref string result) => TryGetUnicodeStringAt(address, size, ref result);
+        public bool TryGetNIntAt(nuint address, nint* result) => TryGetAt(address, ref *result);
+        public bool TryGetNUIntAt(nuint address, nuint* result) => TryGetAt(address, ref *result);
+        public bool TryGetSByteAt(nuint address, sbyte* result) => TryGetAt(address, ref *result);
+        public bool TryGetByteAt(nuint address, byte* result) => TryGetAt(address, ref *result);
+        public bool TryGetShortAt(nuint address, short* result) => TryGetAt(address, ref *result);
+        public bool TryGetUShortAt(nuint address, ushort* result) => TryGetAt(address, ref *result);
+        public bool TryGetInt24At(nuint address, Int24* result) => TryGetAt(address, ref *result);
+        public bool TryGetUInt24At(nuint address, UInt24* result) => TryGetAt(address, ref *result);
+        public bool TryGetIntAt(nuint address, int* result) => TryGetAt(address, ref *result);
+        public bool TryGetUIntAt(nuint address, uint* result) => TryGetAt(address, ref *result);
+        public bool TryGetLongAt(nuint address, long* result) => TryGetAt(address, ref *result);
+        public bool TryGetULongAt(nuint address, ulong* result) => TryGetAt(address, ref *result);
+        public bool TryGetFloatAt(nuint address, float* result) => TryGetAt(address, ref *result);
+        public bool TryGetDoubleAt(nuint address, double* result) => TryGetAt(address, ref *result);
+        public bool TryGetASCIIStringAt(nuint address, nuint size, ref string result) => TryGetASCIIStringAt(address, size, ref result);
+        public bool TryGetUnicodeStringAt(nuint address, nuint size, ref string result) => TryGetUnicodeStringAt(address, size, ref result);
 
         public static nint FindIndexOf(byte[] array, nint start, byte[] sequence)
         {
