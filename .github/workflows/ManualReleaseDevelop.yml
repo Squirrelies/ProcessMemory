@@ -1,6 +1,26 @@
 name: "Manual Release - Develop"
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      buildConfig:
+        description: 'Build configuration'
+        required: true
+        default: 'Debug' 
+        type: choice
+        options:
+        - 'Debug'
+        - 'Release'
+      releaseTypeTag: # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
+        description: 'Release type tag'
+        required: true
+        default: '-beta' 
+        type: choice
+        options:
+        - '-alpha'
+        - '-beta'
+        - '-RC'
+        - ''
 
 jobs:
   build:
@@ -10,11 +30,9 @@ jobs:
       matrix:
         BUILD_PLATFORM: [x86, x64]
     env:
-      BUILD_CONFIG: 'Debug'
       BUILD_PLATFORM: ${{matrix.BUILD_PLATFORM}}
       SOLUTION: 'ProcessMemory.sln'
       PROJECT: 'src/ProcessMemory/ProcessMemory.csproj'
-      RELEASE_TYPE: '-beta' # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
 
     steps:
     - name: Checkout
@@ -34,11 +52,11 @@ jobs:
     - name: Set project version string
       id: project-version-string
       run: |
-        echo 'Version=${{steps.project-versions.outputs.Version_Major}}.${{steps.project-versions.outputs.Version_Minor}}.${{steps.project-versions.outputs.Version_Patch}}${{env.RELEASE_TYPE}}.${{steps.get-datetime.outputs.UTCDateTime}}' >> $env:GITHUB_OUTPUT
+        echo 'Version=${{steps.project-versions.outputs.Version_Major}}.${{steps.project-versions.outputs.Version_Minor}}.${{steps.project-versions.outputs.Version_Patch}}${{inputs.releaseTypeTag}}.${{steps.get-datetime.outputs.UTCDateTime}}' >> $env:GITHUB_OUTPUT
 
     - name: Ensure we detected the version properly
       id: assert-version
-      if: ${{ steps.project-version-string.outputs.Version == format('..{0}.', env.RELEASE_TYPE) }}
+      if: ${{ steps.project-version-string.outputs.Version == format('..{0}.', inputs.releaseTypeTag) }}
       run: exit 1
 
     - name: Setup NuGet
@@ -54,10 +72,10 @@ jobs:
       run: dotnet restore $env:SOLUTION --verbosity normal
 
     - name: Build
-      run: dotnet build $env:SOLUTION /p:"Configuration=$env:BUILD_CONFIG;Platform=$env:BUILD_PLATFORM;VERSION=${{steps.project-version-string.outputs.Version}}" --no-restore --verbosity normal
+      run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{steps.project-version-string.outputs.Version}}" --no-restore --verbosity normal
 
     - name: Run tests
-      run: dotnet test /p:"Configuration=$env:BUILD_CONFIG;Platform=$env:BUILD_PLATFORM;VERSION=${{steps.project-version-string.outputs.Version}}" --no-restore --no-build --verbosity normal
+      run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{steps.project-version-string.outputs.Version}}" --no-restore --no-build --verbosity normal
       
     - name: Decode the pfx
       run: |

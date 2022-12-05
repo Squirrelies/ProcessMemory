@@ -13,11 +13,11 @@ jobs:
       matrix:
         BUILD_PLATFORM: [x86, x64]
     env:
+      RELEASE_TYPE: '' # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.  
       BUILD_CONFIG: 'Release'
       BUILD_PLATFORM: ${{matrix.BUILD_PLATFORM}}
       SOLUTION: 'ProcessMemory.sln'
       PROJECT: 'src/ProcessMemory/ProcessMemory.csproj'
-      RELEASE_TYPE: '' # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
 
     steps:
     - name: Checkout
