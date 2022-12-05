@@ -14,7 +14,7 @@ jobs:
       BUILD_PLATFORM: ${{matrix.BUILD_PLATFORM}}
       SOLUTION: 'ProcessMemory.sln'
       PROJECT: 'src/ProcessMemory/ProcessMemory.csproj'
-      RELEASE_TYPE: '-alpha' # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
+      RELEASE_TYPE: '-beta' # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
 
     steps:
     - name: Checkout
