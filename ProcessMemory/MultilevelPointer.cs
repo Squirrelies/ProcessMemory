@@ -1,5 +1,4 @@
-﻿using ProcessMemory.Types;
-using System;
+﻿using System;
 
 namespace ProcessMemory
 {

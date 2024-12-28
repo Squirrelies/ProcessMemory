@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using static ProcessMemory.PInvoke;
 
 namespace ProcessMemory
