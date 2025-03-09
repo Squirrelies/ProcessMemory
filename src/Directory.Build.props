@@ -1,0 +1,55 @@
+<Project>
+	<PropertyGroup>
+		<Company>Squirrelies</Company>
+		<Authors>$(Company)</Authors>
+		<CopyrightYear>$([System.DateTime]::UtcNow.ToString("yyyy"))</CopyrightYear>
+		<Copyright>Copyright © $(CopyrightYear) $(Company)</Copyright>
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageDescription>$(Description)</PackageDescription>
+		<RepositoryUrl>https://github.com/$(Company)/$(PackageId)</RepositoryUrl>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<DefineConstants>$(DefineConstants);$(Platform)</DefineConstants>
+		<DebugType>embedded</DebugType>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)'=='x64'">
+		<PackageId>$(PackageId)64</PackageId>
+		<AssemblyName>$(AssemblyName)64</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)'=='x86'">
+		<PackageId>$(PackageId)32</PackageId>
+		<AssemblyName>$(AssemblyName)32</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TF_BUILD)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.AzureRepos.Git" Version="8.0.0" Condition="'$(TF_BUILD)' == 'true'">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+</Project>

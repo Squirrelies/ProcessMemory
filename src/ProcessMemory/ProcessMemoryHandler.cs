@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static Windows.Win32.PInvoke;
 using Windows.Win32.System.Threading;
-using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
 using ProcessMemory.Types;
+using Microsoft.Win32.SafeHandles;
 
 namespace ProcessMemory
 {
@@ -13,15 +13,15 @@ namespace ProcessMemory
     {
         private static readonly nuint memoryBasicInformationSize = (nuint)sizeof(MEMORY_BASIC_INFORMATION);
 
-        public HANDLE ProcessHandle { get; private set; }
+        public SafeProcessHandle ProcessHandle { get; private set; }
 
         public uint ProcessExitCode
         {
             get
             {
-                uint lpExitCode = 0;
-                GetExitCodeProcess(ProcessHandle, &lpExitCode);
-                return lpExitCode;
+                uint exitCode = 0;
+                GetExitCodeProcess(ProcessHandle, out exitCode);
+                return exitCode;
             }
         }
 
@@ -29,7 +29,7 @@ namespace ProcessMemory
 
         public ProcessMemoryHandler(uint pid, bool readOnly = true)
         {
-            ProcessHandle = OpenProcess((readOnly) ? PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ : PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ | PROCESS_ACCESS_RIGHTS.PROCESS_VM_WRITE, false, pid);
+            ProcessHandle = OpenProcess(readOnly ? PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ : PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ | PROCESS_ACCESS_RIGHTS.PROCESS_VM_WRITE, false, pid).ToSafeProcessHandle();
         }
 
         private string GetMemoryProtectFlags(void* offset)
@@ -37,7 +37,7 @@ namespace ProcessMemory
             try
             {
                 MEMORY_BASIC_INFORMATION memBasicInfo = new MEMORY_BASIC_INFORMATION();
-                VirtualQueryEx(ProcessHandle, offset, &memBasicInfo, memoryBasicInformationSize);
+                VirtualQueryEx(ProcessHandle, offset, out memBasicInfo, memoryBasicInformationSize);
 
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
@@ -283,7 +283,7 @@ namespace ProcessMemory
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
-                CloseHandle(ProcessHandle);
+                ProcessHandle.Dispose();
 
                 disposedValue = true;
             }
