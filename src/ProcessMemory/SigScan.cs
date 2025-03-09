@@ -16,7 +16,7 @@ namespace ProcessMemory
     public static unsafe class SigScan
     {
         private const string SIGSCAN_WILDCARD_PATTERN = "??";
-        private const nuint SIGSCAN_CHUNK_SIZE = 16 * 1024 * 1024; // 16 MB
+        private const nuint SIGSCAN_STACK_CHUNK_SIZE = 64 * 1024; // 64 KB
 
         public const nuint SIGSCAN_DEFAULT_ALIGNMENT = 4;
         public const ulong SIGSCAN_DEFAULT_START_ADDRESS = 0x0000000000000000UL;
@@ -112,10 +112,11 @@ namespace ProcessMemory
             (byte[] patternBytes, bool[] maskBytes) = ParsePattern(pattern);
 
             // Start scanning from address 0
-            byte* currentAddress = (byte*)0;
+            byte* currentAddress = (byte*)startAddress;
 
             nuint alignmentMask = alignment > 0 ? (nuint)(alignment - 1) : 0;
 
+            Span<byte> masterBuffer = stackalloc byte[(int)SIGSCAN_STACK_CHUNK_SIZE];
             while (true)
             {
                 // Query memory region information
@@ -137,9 +138,9 @@ namespace ProcessMemory
                 }
                 currentAddress = nextAddress;
 
-                // If we're outside of the start or end range, go to the next block.
-                if (currentAddress < (byte*)startAddress || currentAddress > (byte*)endAddress)
-                    continue;
+                // If we're outside of the start or end range, bail out.
+                if (currentAddress > (byte*)endAddress)
+                    break;
 
                 //Check if memory region is committed and readable
                 if (memInfo.State != virtualAllocationType || (memInfo.Protect & pageProtectionFlags) == 0)
@@ -153,19 +154,18 @@ namespace ProcessMemory
                 nuint overlap = (nuint)(patternBytes.Length - 1);
 
                 // Process the region in chunks
-                for (nuint offset = 0; offset < totalRegionSize; offset += SIGSCAN_CHUNK_SIZE - overlap)
+                for (nuint offset = 0; offset < totalRegionSize; offset += SIGSCAN_STACK_CHUNK_SIZE - overlap)
                 {
                     // Calculate the size of this chunk
-                    nuint currentChunkSize = (nuint)Math.Min(SIGSCAN_CHUNK_SIZE, totalRegionSize - offset);
+                    nuint currentChunkSize = (nuint)Math.Min(SIGSCAN_STACK_CHUNK_SIZE, totalRegionSize - offset);
 
                     // Adjust the base address for this chunk
 
                     byte* currentBaseAddress = (byte*)((nuint)memInfo.BaseAddress + offset);
 
                     // Read this chunk
-                    byte[] buffer = new byte[currentChunkSize];
+                    Span<byte> buffer = masterBuffer.Slice(0, (int)currentChunkSize);
                     nuint bytesRead;
-
                     fixed (byte* bufferPtr = buffer)
                     {
                         if (!ReadProcessMemory(safeProcessHandle, currentBaseAddress, bufferPtr, (nuint)buffer.Length, &bytesRead))
@@ -222,7 +222,7 @@ namespace ProcessMemory
                                 break;
                             }
 
-                            if (buffer[i + j] != patternBytes[j])
+                            if (buffer[(int)(i + j)] != patternBytes[j])
                             {
                                 found = false;
                                 break;
