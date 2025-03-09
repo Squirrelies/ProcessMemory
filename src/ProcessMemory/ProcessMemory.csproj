@@ -14,10 +14,22 @@
 		<FileVersion>4.0.2</FileVersion>
 		<AssemblyVersion>4.0.0</AssemblyVersion>
 		<AssemblyName>ProcessMemory</AssemblyName>
-		
+
 		<PackageId>$(AssemblyName)</PackageId>
 		<PackageDescription>$(Description)</PackageDescription>
 		<RepositoryUrl>https://github.com/$(Company)/$(PackageId)</RepositoryUrl>
+
+		<DefineConstants>$(DefineConstants);$(Platform)</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)'=='x64'">
+		<PackageId>$(PackageId)64</PackageId>
+		<AssemblyName>$(AssemblyName)64</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)'=='x86'">
+		<PackageId>$(PackageId)32</PackageId>
+		<AssemblyName>$(AssemblyName)32</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>

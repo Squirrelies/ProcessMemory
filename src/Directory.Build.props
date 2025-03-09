@@ -9,7 +9,6 @@
 	<PropertyGroup>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<DefineConstants>$(DefineConstants);$(Platform)</DefineConstants>
 		<DebugType>portable</DebugType>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -23,16 +22,6 @@
 	
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Platform)'=='x64'">
-		<PackageId>$(PackageId)64</PackageId>
-		<AssemblyName>$(AssemblyName)64</AssemblyName>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Platform)'=='x86'">
-		<PackageId>$(PackageId)32</PackageId>
-		<AssemblyName>$(AssemblyName)32</AssemblyName>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TF_BUILD)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true'">
