@@ -4,9 +4,6 @@
 		<Authors>$(Company)</Authors>
 		<CopyrightYear>$([System.DateTime]::UtcNow.ToString("yyyy"))</CopyrightYear>
 		<Copyright>Copyright © $(CopyrightYear) $(Company)</Copyright>
-		<PackageId>$(AssemblyName)</PackageId>
-		<PackageDescription>$(Description)</PackageDescription>
-		<RepositoryUrl>https://github.com/$(Company)/$(PackageId)</RepositoryUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>
