@@ -141,17 +141,21 @@ jobs:
 
       - name: Run CMake
         shell: msys2 {0}
-        run: cmake --workflow --preset ${{inputs.configuration}} -DARCH=${{ inputs.architecture == 'x86_64' && 'x64' || (inputs.architecture == 'x86_32' && 'x86' || 'x86') }} --fresh
+        run: |
+          cmake --preset ${{inputs.configuration}} -DARCH=${{ inputs.architecture == 'x86_64' && 'x64' || (inputs.architecture == 'x86_32' && 'x86' || 'x86') }} --fresh
+          cmake --build --preset ${{inputs.configuration}}
 
       - name: Run Clang-Tidy
         if: ${{ !cancelled() && inputs.clangTidy == 'true' }}
         shell: msys2 {0}
-        run: cmake --workflow --preset ${{inputs.configuration}}-Tidy --fresh
+        run: |
+          cmake --preset ${{inputs.configuration}}-Tidy -DARCH=${{ inputs.architecture == 'x86_64' && 'x64' || (inputs.architecture == 'x86_32' && 'x86' || 'x86') }} --fresh
+          cmake --build --preset ${{inputs.configuration}}-Tidy
 
       - name: Run CTest
         if: ${{ !cancelled() && inputs.unitTests == 'true' }}
         shell: msys2 {0}
-        run: ctest --preset ${{inputs.configuration}} --output-on-failure
+        run: ctest --preset ${{inputs.configuration}} -DARCH=${{ inputs.architecture == 'x86_64' && 'x64' || (inputs.architecture == 'x86_32' && 'x86' || 'x86') }} --output-on-failure
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
