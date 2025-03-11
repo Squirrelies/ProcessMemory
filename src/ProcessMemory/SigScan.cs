@@ -104,8 +104,6 @@ namespace ProcessMemory
             if (!Environment.Is64BitProcess)
                 throw new PlatformNotSupportedException($"Only 64-bit (amd64/x64) is supported at this time.");
 
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             IList<IntPtr> results = new List<IntPtr>();
 
             // Parse the pattern into a byte array and a mask
@@ -233,7 +231,6 @@ namespace ProcessMemory
                         {
                             // Pattern found, add the address to results
                             IntPtr result = new IntPtr(currentBaseAddress + i);
-                            Console.WriteLine($"Pattern found at 0x{result:X16}.");
                             results.Add(result);
                         }
 
@@ -247,8 +244,6 @@ namespace ProcessMemory
                 }
             }
 
-            sw.Stop();
-            Trace.WriteLine($"{nameof(SigScan)}.{nameof(ScanMemory)}(...) completed after {sw.Elapsed}.");
             return results;
         }
 

@@ -1,0 +1,8 @@
+---
+Checks: "-*,bugprone-*,clang-analyzer-*,concurrency-*,cppcoreguidelines-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-cppcoreguidelines-avoid-non-const-global-variables,-modernize-use-trailing-return-type,-misc-include-cleaner,-readability-else-after-return,-readability-braces-around-statements,-bugprone-switch-missing-default-case,-readability-function-cognitive-complexity"
+WarningsAsErrors: ""
+HeaderFileExtensions: ["h", "hpp"]
+ImplementationFileExtensions: ["c", "cpp"]
+HeaderFilterRegex: ""
+FormatStyle: file
+InheritParentConfig: true
