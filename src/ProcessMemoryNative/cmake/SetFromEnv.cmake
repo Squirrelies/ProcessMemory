@@ -1,0 +1,7 @@
+function(set_from_env var_name default_value var_type var_desc)
+  if(DEFINED ENV{${var_name}})
+    set(${var_name} $ENV{${var_name}} CACHE ${var_type} ${var_desc} FORCE)
+  else()
+    set(${var_name} ${default_value} CACHE ${var_type} ${var_desc} FORCE)
+  endif()
+endfunction()

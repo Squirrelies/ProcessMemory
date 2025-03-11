@@ -1,0 +1,292 @@
+{
+    "version": 10,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 31,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "baseConfigure",
+            "generator": "MSYS Makefiles",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/toolchains/clang-toolchain.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF",
+                "ENABLE_CLANG_TIDY": "OFF"
+            }
+        },
+        {
+            "name": "baseConfigure-Tidy",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build-tidy",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_CLANG_TIDY": "ON"
+            }
+        },
+        {
+            "name": "Debug",
+            "inherits": [
+                "baseConfigure"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "Debug-Tidy",
+            "inherits": [
+                "Debug",
+                "baseConfigure-Tidy"
+            ],
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_CLANG_TIDY": "ON"
+            }
+        },
+        {
+            "name": "Release",
+            "inherits": [
+                "baseConfigure"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "Release-Tidy",
+            "inherits": [
+                "Release",
+                "baseConfigure-Tidy"
+            ],
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_CLANG_TIDY": "ON"
+            }
+        },
+        {
+            "name": "RelWithDebInfo",
+            "inherits": [
+                "baseConfigure"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "RelWithDebInfo-Tidy",
+            "inherits": [
+                "RelWithDebInfo",
+                "baseConfigure-Tidy"
+            ],
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_CLANG_TIDY": "ON"
+            }
+        },
+        {
+            "name": "MinSizeRel",
+            "inherits": [
+                "baseConfigure"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel"
+            }
+        },
+        {
+            "name": "MinSizeRel-Tidy",
+            "inherits": [
+                "MinSizeRel",
+                "baseConfigure-Tidy"
+            ],
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "ENABLE_CLANG_TIDY": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Debug",
+            "configurePreset": "Debug"
+        },
+        {
+            "name": "Debug-Tidy",
+            "configurePreset": "Debug-Tidy"
+        },
+        {
+            "name": "Release",
+            "configurePreset": "Release"
+        },
+        {
+            "name": "Release-Tidy",
+            "configurePreset": "Release-Tidy"
+        },
+        {
+            "name": "RelWithDebInfo",
+            "configurePreset": "RelWithDebInfo"
+        },
+        {
+            "name": "RelWithDebInfo-Tidy",
+            "configurePreset": "RelWithDebInfo-Tidy"
+        },
+        {
+            "name": "MinSizeRel",
+            "configurePreset": "MinSizeRel"
+        },
+        {
+            "name": "MinSizeRel-Tidy",
+            "configurePreset": "MinSizeRel-Tidy"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "baseTest",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true
+            }
+        },
+        {
+            "name": "Debug",
+            "inherits": [
+                "baseTest"
+            ],
+            "configurePreset": "Debug"
+        },
+        {
+            "name": "Release",
+            "inherits": [
+                "baseTest"
+            ],
+            "configurePreset": "Release"
+        },
+        {
+            "name": "RelWithDebInfo",
+            "inherits": [
+                "baseTest"
+            ],
+            "configurePreset": "RelWithDebInfo"
+        },
+        {
+            "name": "MinSizeRel",
+            "inherits": [
+                "baseTest"
+            ],
+            "configurePreset": "MinSizeRel"
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "Debug",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "Debug"
+                },
+                {
+                    "type": "build",
+                    "name": "Debug"
+                }
+            ]
+        },
+        {
+            "name": "Debug-Tidy",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "Debug-Tidy"
+                },
+                {
+                    "type": "build",
+                    "name": "Debug-Tidy"
+                }
+            ]
+        },
+        {
+            "name": "Release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "Release"
+                },
+                {
+                    "type": "build",
+                    "name": "Release"
+                }
+            ]
+        },
+        {
+            "name": "Release-Tidy",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "Release-Tidy"
+                },
+                {
+                    "type": "build",
+                    "name": "Release-Tidy"
+                }
+            ]
+        },
+        {
+            "name": "RelWithDebInfo",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "RelWithDebInfo"
+                },
+                {
+                    "type": "build",
+                    "name": "RelWithDebInfo"
+                }
+            ]
+        },
+        {
+            "name": "RelWithDebInfo-Tidy",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "RelWithDebInfo-Tidy"
+                },
+                {
+                    "type": "build",
+                    "name": "RelWithDebInfo-Tidy"
+                }
+            ]
+        },
+        {
+            "name": "MinSizeRel",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "MinSizeRel"
+                },
+                {
+                    "type": "build",
+                    "name": "MinSizeRel"
+                }
+            ]
+        },
+        {
+            "name": "MinSizeRel-Tidy",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "MinSizeRel-Tidy"
+                },
+                {
+                    "type": "build",
+                    "name": "MinSizeRel-Tidy"
+                }
+            ]
+        }
+    ]
+}
