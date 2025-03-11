@@ -159,7 +159,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ProcessMemory.Native_v${{needs.Setup.outputs.semver-string}}_${{ inputs.architecture == 'x86_64' && '64' || '32' }}_${{inputs.configuration}}
-          path: src/ProcessMemoryNative/build/ProcessMemory.Native.${{ inputs.architecture == 'x86_64' && '64' || '32' }}.dll
+          path: |
+            src/ProcessMemoryNative/build/ProcessMemory.Native.${{ inputs.architecture == 'x86_64' && '64' || '32' }}.dll
+            src/ProcessMemoryNative/build/ProcessMemory.Native.${{ inputs.architecture == 'x86_64' && '64' || '32' }}.pdb
 
   PostRun:
     name: Post-Run
