@@ -129,7 +129,7 @@ jobs:
         if: ${{ inputs.architecture == 'x86_32' }}
         with:
           msystem: ${{ env.MSYS2SYSTEM }}
-          install: base-devel mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-clang mingw-w64-i686-clang-tools-extra mingw-w64-i686-libc++ mingw-w64-i686-headers-git
+          install: base-devel mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-clang mingw-w64-i686-lld mingw-w64-i686-clang-tools-extra mingw-w64-i686-libc++ mingw-w64-i686-headers-git
 
       - name: Checkout code
         uses: actions/checkout@v4
