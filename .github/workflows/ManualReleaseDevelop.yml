@@ -51,7 +51,7 @@ jobs:
           ref: ${{github.ref}}
 
       - name: Get C# project version
-        uses: Squirrelies/CI-CD-Test/GetCSProjVersion@main
+        uses: Squirrelies/CI-CD/GetCSProjVersion@main
         id: Get-CSProj-Version
         with:
           repository: ${{github.repository}}
@@ -59,14 +59,14 @@ jobs:
           csproj-path: ${{env.CSPROJECT}}
 
       - name: Get UTC DateTime
-        uses: Squirrelies/CI-CD-Test/GetUTCDateTime@main
+        uses: Squirrelies/CI-CD/GetUTCDateTime@main
         id: Get-UTC-DateTime
 
       - name: Set VERSION environment variable
         run: echo 'VERSION=${{steps.Get-CSProj-Version.outputs.Version}}${{inputs.releaseTypeTag}}.${{steps.Get-UTC-DateTime.outputs.UTC-DateTime}}' >> $env:GITHUB_ENV
 
       - name: Build Native Library
-        uses: Squirrelies/CI-CD-Test/BuildMSYS2CMakeVCPkgProject@main
+        uses: Squirrelies/CI-CD/BuildMSYS2CMakeVCPkgProject@main
         id: build-native-library
         with:
           root-path: ./src/ProcessMemoryNative
