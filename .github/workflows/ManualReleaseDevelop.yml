@@ -1,4 +1,4 @@
-name: "Manual Release - Develop"
+name: "Manual Release"
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
       buildConfig:
         description: "Build configuration"
         required: true
-        default: "Debug"
+        default: "Release"
         type: choice
         options:
-          - "Debug"
           - "Release"
+          - "Debug"
       releaseTypeTag: # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
         description: "Release type tag"
         required: true
@@ -21,6 +21,11 @@ on:
           - "-beta"
           - "-RC"
           - ""
+      runLinters:
+        description: "Run Linters"
+        required: false
+        default: false
+        type: boolean
       unitTests:
         description: "Run Unit Tests"
         required: false
@@ -29,7 +34,7 @@ on:
 
 jobs:
   Build:
-    name: "Build .NET Project"
+    name: "Build, Test, and Publish Project"
     runs-on: "windows-latest"
     defaults:
       run:
@@ -74,7 +79,7 @@ jobs:
           msys2-packages: ${{ matrix.BUILD_PLATFORM == 'x64' && 'base-devel mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-x86_64-clang-tools-extra' || 'base-devel mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-clang mingw-w64-i686-lld mingw-w64-i686-clang-tools-extra mingw-w64-i686-libc++ mingw-w64-i686-headers-git' }}
           #vcpkg-root: C:/VCPkg
           preset-configuration: ${{inputs.buildConfig}}
-          preset-configuration-tidy: ${{inputs.buildConfig}}-Tidy
+          preset-configuration-tidy: ${{ inputs.runLinters == true && format('{0}-Tidy', inputs.buildConfig) || ''}}
           run-unit-tests: ${{inputs.unitTests}}
           additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}}
 
@@ -87,14 +92,14 @@ jobs:
           dotnet-version: 9.0.x
           dotnet-quality: "ga"
 
-      - name: Restore
+      - name: Restore NuGet Packages
         run: dotnet restore $env:SOLUTION --verbosity normal
 
-      - name: Build
+      - name: Build .NET Project
         run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION" --no-restore --verbosity normal
 
-      - name: Run tests
+      - name: Run .NET Project Unit Tests
         run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION" --no-restore --no-build --verbosity normal
 
-      - name: Publish
+      - name: Publish NuGet Package
         run: nuget push **\*.nupkg -Source "https://api.nuget.org/v3/index.json" -ApiKey "${{secrets.NUGET_API_KEY}}" -SkipDuplicate
