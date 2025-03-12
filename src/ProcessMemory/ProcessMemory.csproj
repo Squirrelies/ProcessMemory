@@ -41,9 +41,19 @@
 		<PackageReference Include="System.Text.Json" Version="9.0.2" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(Platform)'=='x64'">
+		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.64.dll" Pack="true" PackagePath="runtimes/win-x64/native/" />
+		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.64.pdb" Pack="true" PackagePath="runtimes/win-x64/native/" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Platform)'=='x86'">
+		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.32.dll" Pack="true" PackagePath="runtimes/win-x86/native/" />
+		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.32.pdb" Pack="true" PackagePath="runtimes/win-x86/native/" />
+	</ItemGroup>
+
 	<ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+		<None Include="../../README.md" Pack="true" PackagePath="/" />
+		<None Include="../../LICENSE" Pack="true" PackagePath="/" />
 	</ItemGroup>
 
 </Project>

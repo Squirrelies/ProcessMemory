@@ -21,11 +21,29 @@ on:
           - "-beta"
           - "-RC"
           - ""
+      unitTests:
+        description: "Run Unit Tests"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-  build:
-    name: "Build"
+  Get-CSProj-Version:
+    name: Get C# project version
+    uses: Squirrelies/CI-CD-Test/.github/workflows/GetCSProjVersion.yml@main
+    with:
+      repository: ${{github.repository}}
+      ref: ${{github.ref}}
+      config-path: src/ProcessMemory/ProcessMemory.csproj
+
+  Get-UTC-DateTime:
+    name: Get UTC DateTime
+    uses: Squirrelies/CI-CD-Test/.github/workflows/GetUTCDateTime.yml@main
+
+  Build:
+    name: "Build .NET Project"
     runs-on: "windows-latest"
+    needs: [Get-CSProj-Version, Get-UTC-DateTime]
     strategy:
       matrix:
         BUILD_PLATFORM: [x86, x64]
@@ -33,31 +51,28 @@ jobs:
       BUILD_PLATFORM: ${{matrix.BUILD_PLATFORM}}
       SOLUTION: "ProcessMemory.sln"
       PROJECT: "src/ProcessMemory/ProcessMemory.csproj"
+      VERSION: ${{needs.Get-CSProj-Version.outputs.Version}}${{inputs.releaseTypeTag}}.${{needs.Get-UTC-DateTime.outputs.UTC-DateTime}}
 
     steps:
+      - name: Build Native Library
+        uses: Squirrelies/CI-CD-Test/.github/workflows/BuildMSYS2CMakeVCPkgProject.yml@main
+        id: build-native-library
+        with:
+          repository: ${{github.repository}}
+          ref: ${{github.ref}}
+          msys2-msystem: ${{ matrix.BUILD_PLATFORM == 'x64' && 'clang64' || 'mingw32' }}
+          msys2-packages: ${{ matrix.BUILD_PLATFORM == 'x64' && 'base-devel mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-x86_64-clang-tools-extra' || 'base-devel mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-clang mingw-w64-i686-lld mingw-w64-i686-clang-tools-extra mingw-w64-i686-libc++ mingw-w64-i686-headers-git' }}
+          root-path: ./src/ProcessMemoryNative
+          preset-configuration: ${{inputs.buildConfig}}
+          preset-configuration-tidy: ${{inputs.buildConfig}}-Tidy
+          run-unit-tests: ${{inputs.unitTests}}
+          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: develop
-
-      - name: Get current UTC DateTime
-        id: get-datetime
-        run: echo ('UTCDateTime=' + [System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss")) >> $env:GITHUB_OUTPUT
-
-      - name: Get project version information
-        id: project-versions
-        run: Select-String -Path "$env:PROJECT" '<(?<TagName>\w*?Version)>(?<Major>\d+)(?:\.(?<Minor>\d+))(?:\.(?<Patch>\d+)|-(?<Quality>\w+)|\+(?<Tag>\w+))?(?:\.(?<Patch>\d+)|-(?<Quality>\w+)|\+(?<Tag>\w+))?(?:\.(?<Patch>\d+)|-(?<Quality>\w+)|\+(?<Tag>\w+))?</\w*?Version>' -AllMatches | Foreach-Object -Process {$_.Matches} | Foreach-Object -Process { $tagName = $_.Groups["TagName"].Value; $_.Groups | Where-Object { $_.Name -ne "0" -and $_.Name -ne "TagName"; } } | Foreach-Object -Process { $tagName + "_" + $_.Name + "=" + $_.Value >> $env:GITHUB_OUTPUT }
-
-      - name: Set project version string
-        id: project-version-string
-        run: |
-          echo 'Version=${{steps.project-versions.outputs.Version_Major}}.${{steps.project-versions.outputs.Version_Minor}}.${{steps.project-versions.outputs.Version_Patch}}${{inputs.releaseTypeTag}}.${{steps.get-datetime.outputs.UTCDateTime}}' >> $env:GITHUB_OUTPUT
-
-      - name: Ensure we detected the version properly
-        id: assert-version
-        if: ${{ steps.project-version-string.outputs.Version == format('..{0}.', inputs.releaseTypeTag) }}
-        run: exit 1
+          ref: ${{github.ref}}
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
@@ -72,10 +87,10 @@ jobs:
         run: dotnet restore $env:SOLUTION --verbosity normal
 
       - name: Build
-        run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{steps.project-version-string.outputs.Version}}" --no-restore --verbosity normal
+        run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{env.VERSION}}" --no-restore --verbosity normal
 
       - name: Run tests
-        run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{steps.project-version-string.outputs.Version}}" --no-restore --no-build --verbosity normal
+        run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{env.VERSION}}" --no-restore --no-build --verbosity normal
 
       - name: Publish
         run: nuget push **\*.nupkg -Source "https://api.nuget.org/v3/index.json" -ApiKey "${{secrets.NUGET_API_KEY}}" -SkipDuplicate
