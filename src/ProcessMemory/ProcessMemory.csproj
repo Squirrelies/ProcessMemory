@@ -43,12 +43,12 @@
 
 	<ItemGroup Condition="'$(Platform)'=='x64'">
 		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.64.dll" Pack="true" PackagePath="runtimes/win-x64/native/" />
-		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.64.pdb" Pack="true" PackagePath="runtimes/win-x64/native/" />
+		<!-- <None Include="../ProcessMemoryNative/build/ProcessMemory.Native.64.pdb" Pack="true" PackagePath="runtimes/win-x64/native/" /> --> <!-- Nuget does not like non-Portable PDB files. -->
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Platform)'=='x86'">
 		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.32.dll" Pack="true" PackagePath="runtimes/win-x86/native/" />
-		<None Include="../ProcessMemoryNative/build/ProcessMemory.Native.32.pdb" Pack="true" PackagePath="runtimes/win-x86/native/" />
+		<!-- <None Include="../ProcessMemoryNative/build/ProcessMemory.Native.32.pdb" Pack="true" PackagePath="runtimes/win-x86/native/" /> --> <!-- Nuget does not like non-Portable PDB files. -->
 	</ItemGroup>
 
 	<ItemGroup>
