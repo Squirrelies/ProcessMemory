@@ -7,6 +7,7 @@ using Windows.Win32.System.Threading;
 using Windows.Win32.Foundation;
 using Windows.Win32;
 using Microsoft.Win32.SafeHandles;
+using System.Security.Cryptography;
 
 namespace ProcessMemory
 {
@@ -40,6 +41,8 @@ namespace ProcessMemory
                     return default;
             }
         }
+
+        public static SafeProcessHandle GetSafeProcessHandle(ushort pid, bool inheritHandle = false, PROCESS_ACCESS_RIGHTS processAccessRights = PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ) => OpenProcess(processAccessRights, inheritHandle, pid).ToSafeProcessHandle();
 
         public unsafe static FreeLibrarySafeHandle GetProcessBaseAddress(uint pid, ENUM_PROCESS_MODULES_EX_FLAGS moduleTypes = ENUM_PROCESS_MODULES_EX_FLAGS.LIST_MODULES_ALL)
         {
