@@ -10,8 +10,8 @@
 	<PropertyGroup>
 		<Product>Process Memory Access Library ($(Platform))</Product>
 		<Description>A library for reading and writing process memory.</Description>
-		<Version>4.0.4</Version>
-		<FileVersion>4.0.4</FileVersion>
+		<Version>4.0.5</Version>
+		<FileVersion>4.0.5</FileVersion>
 		<AssemblyVersion>4.0.0</AssemblyVersion>
 		<AssemblyName>ProcessMemory</AssemblyName>
 
