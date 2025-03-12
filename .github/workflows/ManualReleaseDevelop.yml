@@ -1,4 +1,4 @@
-name: "Manual Release - Develop"
+name: "Manual Release"
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
       buildConfig:
         description: "Build configuration"
         required: true
-        default: "Debug"
+        default: "Release"
         type: choice
         options:
-          - "Debug"
           - "Release"
+          - "Debug"
       releaseTypeTag: # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
         description: "Release type tag"
         required: true
@@ -21,6 +21,11 @@ on:
           - "-beta"
           - "-RC"
           - ""
+      runLinters:
+        description: "Run Linters"
+        required: false
+        default: false
+        type: boolean
       unitTests:
         description: "Run Unit Tests"
         required: false
@@ -28,51 +33,55 @@ on:
         type: boolean
 
 jobs:
-  Get-CSProj-Version:
-    name: Get C# project version
-    uses: Squirrelies/CI-CD-Test/.github/workflows/GetCSProjVersion.yml@main
-    with:
-      repository: ${{github.repository}}
-      ref: ${{github.ref}}
-      config-path: src/ProcessMemory/ProcessMemory.csproj
-
-  Get-UTC-DateTime:
-    name: Get UTC DateTime
-    uses: Squirrelies/CI-CD-Test/.github/workflows/GetUTCDateTime.yml@main
-
   Build:
-    name: "Build .NET Project"
+    name: "Build, Test, and Publish Project"
     runs-on: "windows-latest"
-    needs: [Get-CSProj-Version, Get-UTC-DateTime]
+    defaults:
+      run:
+        shell: "pwsh"
     strategy:
       matrix:
         BUILD_PLATFORM: [x86, x64]
     env:
       BUILD_PLATFORM: ${{matrix.BUILD_PLATFORM}}
-      SOLUTION: "ProcessMemory.sln"
-      PROJECT: "src/ProcessMemory/ProcessMemory.csproj"
-      VERSION: ${{needs.Get-CSProj-Version.outputs.Version}}${{inputs.releaseTypeTag}}.${{needs.Get-UTC-DateTime.outputs.UTC-DateTime}}
+      SOLUTION: ProcessMemory.sln
+      CSPROJECT: src/ProcessMemory/ProcessMemory.csproj
+      VERSION: 0.1.0
 
     steps:
-      - name: Build Native Library
-        uses: Squirrelies/CI-CD-Test/.github/workflows/BuildMSYS2CMakeVCPkgProject.yml@main
-        id: build-native-library
-        with:
-          repository: ${{github.repository}}
-          ref: ${{github.ref}}
-          msys2-msystem: ${{ matrix.BUILD_PLATFORM == 'x64' && 'clang64' || 'mingw32' }}
-          msys2-packages: ${{ matrix.BUILD_PLATFORM == 'x64' && 'base-devel mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-x86_64-clang-tools-extra' || 'base-devel mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-clang mingw-w64-i686-lld mingw-w64-i686-clang-tools-extra mingw-w64-i686-libc++ mingw-w64-i686-headers-git' }}
-          root-path: ./src/ProcessMemoryNative
-          preset-configuration: ${{inputs.buildConfig}}
-          preset-configuration-tidy: ${{inputs.buildConfig}}-Tidy
-          run-unit-tests: ${{inputs.unitTests}}
-          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}}
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{github.ref}}
+
+      - name: Get C# project version
+        uses: Squirrelies/CI-CD/GetCSProjVersion@main
+        id: Get-CSProj-Version
+        with:
+          repository: ${{github.repository}}
+          ref: ${{github.ref}}
+          csproj-path: ${{env.CSPROJECT}}
+
+      - name: Get UTC DateTime
+        uses: Squirrelies/CI-CD/GetUTCDateTime@main
+        id: Get-UTC-DateTime
+
+      - name: Set VERSION environment variable
+        run: echo 'VERSION=${{steps.Get-CSProj-Version.outputs.Version}}${{inputs.releaseTypeTag}}.${{steps.Get-UTC-DateTime.outputs.UTC-DateTime}}' >> $env:GITHUB_ENV
+
+      - name: Build Native Library
+        uses: Squirrelies/CI-CD/BuildMSYS2CMakeVCPkgProject@main
+        id: build-native-library
+        with:
+          root-path: ./src/ProcessMemoryNative
+          msys2-msystem: ${{ matrix.BUILD_PLATFORM == 'x64' && 'clang64' || 'mingw32' }}
+          msys2-packages: ${{ matrix.BUILD_PLATFORM == 'x64' && 'base-devel mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-x86_64-clang-tools-extra' || 'base-devel mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-clang mingw-w64-i686-lld mingw-w64-i686-clang-tools-extra mingw-w64-i686-libc++ mingw-w64-i686-headers-git' }}
+          #vcpkg-root: C:/VCPkg
+          preset-configuration: ${{inputs.buildConfig}}
+          preset-configuration-tidy: ${{ inputs.runLinters == true && format('{0}-Tidy', inputs.buildConfig) || ''}}
+          run-unit-tests: ${{inputs.unitTests}}
+          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}}
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
@@ -83,14 +92,14 @@ jobs:
           dotnet-version: 9.0.x
           dotnet-quality: "ga"
 
-      - name: Restore
+      - name: Restore NuGet Packages
         run: dotnet restore $env:SOLUTION --verbosity normal
 
-      - name: Build
-        run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{env.VERSION}}" --no-restore --verbosity normal
+      - name: Build .NET Project
+        run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION" --no-restore --verbosity normal
 
-      - name: Run tests
-        run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=${{env.VERSION}}" --no-restore --no-build --verbosity normal
+      - name: Run .NET Project Unit Tests
+        run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION" --no-restore --no-build --verbosity normal
 
-      - name: Publish
+      - name: Publish NuGet Package
         run: nuget push **\*.nupkg -Source "https://api.nuget.org/v3/index.json" -ApiKey "${{secrets.NUGET_API_KEY}}" -SkipDuplicate
