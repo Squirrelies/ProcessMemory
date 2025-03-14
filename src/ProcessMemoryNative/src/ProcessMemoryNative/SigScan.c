@@ -1,4 +1,21 @@
 #include "SigScan.h"
+#include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+
+#if __STDC_VERSION__ < 202311L
+#include <stdbool.h>
+#endif
+
+typedef struct
+{
+	uint8_t *bytes;
+	bool *wildcards;
+	size_t length;
+} SIGSCAN_PATTERN_T;
 
 SIGSCAN_PATTERN_T parse_pattern(const char *pattern_str)
 {
@@ -139,13 +156,11 @@ SIGSCAN_RESULTS_T signature_scan(
 {
 	SIGSCAN_RESULTS_T results = {0};
 
-	// Use default options if none provided
-	SIGSCAN_OPTIONS_T effective_options = options ? *options : DEFAULT_OPTIONS;
-
-	printf("Scan options: Start=0x%llx, End=0x%llx, Alignment=%u\n",
-	       (unsigned long long)effective_options.startAddress,
-	       (unsigned long long)effective_options.endAddress,
-	       effective_options.alignment);
+	if (!options)
+	{
+		printf("Required parameter `%s` not supplied.\n", NAMEOF(options));
+		return results;
+	}
 
 	// Parse the pattern
 	SIGSCAN_PATTERN_T pattern = parse_pattern(pattern_str);
@@ -175,24 +190,24 @@ SIGSCAN_RESULTS_T signature_scan(
 
 	// Query memory regions
 	MEMORY_BASIC_INFORMATION mbi;
-	uintptr_t address = effective_options.startAddress;
+	uintptr_t address = options->startAddress;
 
-	uintptr_t alignment_mask = effective_options.alignment > 0 ? (effective_options.alignment - 1) : 0;
+	uintptr_t alignment_mask = options->alignment > 0 ? (options->alignment - 1) : 0;
 
-	while (address < effective_options.endAddress &&
+	while (address < options->endAddress &&
 	       VirtualQueryEx(processHandle, (LPCVOID)address, &mbi, sizeof(mbi)))
 	{
 		// Check if this region should be scanned
-		if ((mbi.State == MEM_COMMIT) && (mbi.Protect & effective_options.pageProtectionFlags))
+		if ((mbi.State == MEM_COMMIT) && (mbi.Protect & options->pageProtectionFlags))
 		{
 			// Calculate region bounds
 			uintptr_t region_start = (uintptr_t)mbi.BaseAddress;
 			uintptr_t region_end = region_start + mbi.RegionSize;
 
 			// Ensure we don't go past our end address
-			if (region_end > effective_options.endAddress)
+			if (region_end > options->endAddress)
 			{
-				region_end = effective_options.endAddress;
+				region_end = options->endAddress;
 			}
 
 			// *** ADDED OVERLAP HANDLING LIKE C# ***
@@ -237,13 +252,13 @@ SIGSCAN_RESULTS_T signature_scan(
 					}
 
 					// If alignment is required, adjust scan start to next aligned position
-					if (effective_options.alignment > 0)
+					if (options->alignment > 0)
 					{
 						uintptr_t aligned_addr = chunk + scan_start;
 						if ((aligned_addr & alignment_mask) != 0)
 						{
 							// Calculate bytes to add to reach next aligned address
-							size_t alignment_adjustment = effective_options.alignment -
+							size_t alignment_adjustment = options->alignment -
 							                              (aligned_addr & alignment_mask);
 							scan_start += alignment_adjustment;
 						}
@@ -259,14 +274,14 @@ SIGSCAN_RESULTS_T signature_scan(
 					for (size_t i = scan_start; i < scan_size;)
 					{
 						// Apply alignment if specified
-						if (effective_options.alignment > 0)
+						if (options->alignment > 0)
 						{
 							uintptr_t aligned_addr = chunk + i;
 
 							// If not aligned, move to next aligned position
 							if ((aligned_addr & alignment_mask) != 0)
 							{
-								i += effective_options.alignment -
+								i += options->alignment -
 								     (aligned_addr & alignment_mask);
 								continue;
 							}
@@ -303,7 +318,7 @@ SIGSCAN_RESULTS_T signature_scan(
 						}
 
 						// Move to next position - use alignment if specified
-						i += effective_options.alignment > 0 ? effective_options.alignment : 1;
+						i += options->alignment > 0 ? options->alignment : 1;
 					}
 				}
 				else
@@ -331,15 +346,6 @@ cleanup:
 	return results;
 }
 
-// Helper function with default options
-SIGSCAN_RESULTS_T signature_scan_default(
-    const HANDLE processHandle,
-    const char *pattern)
-{
-	return signature_scan(processHandle, pattern, &DEFAULT_OPTIONS);
-}
-
-// Function to free the results
 void free_sigscan_results(SIGSCAN_RESULTS_T *results)
 {
 	free(results->pointers);

@@ -12,18 +12,20 @@ using static Windows.Win32.PInvoke;
 
 namespace ProcessMemory
 {
-    // TODO: AI-generated (Claude 3.7 Extended (Thinking)). Manually adjusted to use CsWin32-generated types and methods. Re-evaluate and refactor as needed.
     public static unsafe class SigScan
     {
         private const string SIGSCAN_WILDCARD_PATTERN = "??";
         private const nuint SIGSCAN_STACK_CHUNK_SIZE = 64 * 1024; // 64 KB
 
-        public const nuint SIGSCAN_DEFAULT_ALIGNMENT = 4;
+        public const byte SIGSCAN_DEFAULT_ALIGNMENT = 4;
+#if x64
         public const ulong SIGSCAN_DEFAULT_START_ADDRESS = 0x0000000000000000UL;
         public const ulong SIGSCAN_DEFAULT_END_ADDRESS = 0x00007fffffffffffUL;
-        public const PAGE_PROTECTION_FLAGS SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS = PAGE_PROTECTION_FLAGS.PAGE_READONLY |
-            PAGE_PROTECTION_FLAGS.PAGE_READWRITE |
-            PAGE_PROTECTION_FLAGS.PAGE_EXECUTE_READ |
+#else
+        public const uint SIGSCAN_DEFAULT_START_ADDRESS = 0x00000000U;
+        public const uint SIGSCAN_DEFAULT_END_ADDRESS = 0xffffffffU;
+#endif
+        public const PAGE_PROTECTION_FLAGS SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS = PAGE_PROTECTION_FLAGS.PAGE_READWRITE |
             PAGE_PROTECTION_FLAGS.PAGE_EXECUTE_READWRITE;
         public const VIRTUAL_ALLOCATION_TYPE SIGSCAN_DEFAULT_VIRTUAL_ALLOCATION_TYPE = VIRTUAL_ALLOCATION_TYPE.MEM_COMMIT;
 
@@ -32,7 +34,7 @@ namespace ProcessMemory
         public static IList<IntPtr> ScanMemory(
             ushort pid,
             ReadOnlySpan<char> pattern,
-            nuint alignment = SIGSCAN_DEFAULT_ALIGNMENT,
+            byte alignment = SIGSCAN_DEFAULT_ALIGNMENT,
             ulong startAddress = SIGSCAN_DEFAULT_START_ADDRESS,
             ulong endAddress = SIGSCAN_DEFAULT_END_ADDRESS,
             PAGE_PROTECTION_FLAGS pageProtectionFlags = SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS,
@@ -47,7 +49,7 @@ namespace ProcessMemory
         public static IList<IntPtr> ScanMemory(
             IntPtr processHandle,
             ReadOnlySpan<char> pattern,
-            nuint alignment = SIGSCAN_DEFAULT_ALIGNMENT,
+            byte alignment = SIGSCAN_DEFAULT_ALIGNMENT,
             ulong startAddress = SIGSCAN_DEFAULT_START_ADDRESS,
             ulong endAddress = SIGSCAN_DEFAULT_END_ADDRESS,
             PAGE_PROTECTION_FLAGS pageProtectionFlags = SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS,
@@ -62,7 +64,7 @@ namespace ProcessMemory
         public static IList<IntPtr> ScanMemory(
             HANDLE processHandle,
             ReadOnlySpan<char> pattern,
-            nuint alignment = SIGSCAN_DEFAULT_ALIGNMENT,
+            byte alignment = SIGSCAN_DEFAULT_ALIGNMENT,
             ulong startAddress = SIGSCAN_DEFAULT_START_ADDRESS,
             ulong endAddress = SIGSCAN_DEFAULT_END_ADDRESS,
             PAGE_PROTECTION_FLAGS pageProtectionFlags = SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS,
@@ -86,7 +88,7 @@ namespace ProcessMemory
         public static IList<IntPtr> ScanMemory(
             SafeProcessHandle safeProcessHandle,
             ReadOnlySpan<char> pattern,
-            nuint alignment = SIGSCAN_DEFAULT_ALIGNMENT,
+            byte alignment = SIGSCAN_DEFAULT_ALIGNMENT,
             ulong startAddress = SIGSCAN_DEFAULT_START_ADDRESS,
             ulong endAddress = SIGSCAN_DEFAULT_END_ADDRESS,
             PAGE_PROTECTION_FLAGS pageProtectionFlags = SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS,
@@ -235,7 +237,7 @@ namespace ProcessMemory
                         }
 
                         // Increment by alignment if required, otherwise just move by 1
-                        i += alignment > 0 ? alignment : 1;
+                        i += (alignment > 0 ? alignment : (byte)1);
                     }
 
                     // If we read less than we requested, we've hit the end of the region

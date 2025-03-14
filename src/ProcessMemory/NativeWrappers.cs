@@ -7,7 +7,10 @@ using Windows.Win32.System.Threading;
 using Windows.Win32.Foundation;
 using Windows.Win32;
 using Microsoft.Win32.SafeHandles;
-using System.Security.Cryptography;
+using Windows.Win32.System.Memory;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace ProcessMemory
 {
@@ -111,6 +114,39 @@ namespace ProcessMemory
                 // If we reach this point, we didn't find the main module...
                 return new FreeLibrarySafeHandle();
             }
+        }
+
+        /// <summary>
+        /// A wrapper around ProcessMemory.Native.32/64.dll's signature_scan() method for scanning for patterns within a process' memory space.
+        /// </summary>
+#if x64
+        public static unsafe IList<nint> NativeSigScan(ushort pid, string pattern, byte alignment = SigScan.SIGSCAN_DEFAULT_ALIGNMENT, ulong startAddress = SigScan.SIGSCAN_DEFAULT_START_ADDRESS, ulong endAddress = SigScan.SIGSCAN_DEFAULT_END_ADDRESS, PAGE_PROTECTION_FLAGS pageProtectionFlags = SigScan.SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS)
+#else
+        public static unsafe IList<nint> NativeSigScan(ushort pid, string pattern, byte alignment = SigScan.SIGSCAN_DEFAULT_ALIGNMENT, uint startAddress = SigScan.SIGSCAN_DEFAULT_START_ADDRESS, uint endAddress = SigScan.SIGSCAN_DEFAULT_END_ADDRESS, PAGE_PROTECTION_FLAGS pageProtectionFlags = SigScan.SIGSCAN_DEFAULT_PAGE_PROTECTION_FLAGS)
+#endif
+        {
+            IList<nint> pointers = new List<nint>();
+            using (var processHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ, false, pid).ToSafeProcessHandle())
+            {
+                Native.SigScan.SIGSCAN_RESULTS_T results;
+                Unsafe.SkipInit(out results);
+                try
+                {
+                    Native.SigScan.SIGSCAN_OPTIONS_T* options = stackalloc Native.SigScan.SIGSCAN_OPTIONS_T[1];
+                    options->startAddress = (UIntPtr)startAddress;
+                    options->endAddress = (UIntPtr)endAddress;
+                    options->alignment = alignment;
+                    options->pageProtectionFlags = pageProtectionFlags;
+                    results = Native.SigScan.signature_scan(processHandle.DangerousGetHandle(), pattern, options);
+                    for (nuint i = 0; i < results.elements; ++i)
+                        pointers.Add((nint)results.pointers[i]);
+                }
+                finally
+                {
+                    Native.SigScan.free_sigscan_results(&results);
+                }
+            }
+            return pointers;
         }
     }
 }
