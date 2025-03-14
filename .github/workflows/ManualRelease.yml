@@ -31,6 +31,11 @@ on:
         required: false
         default: false
         type: boolean
+      publish:
+        description: "Publish to NuGet"
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   Build:
@@ -112,9 +117,11 @@ jobs:
         run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION;FILEVERSION=$env:FILEVERSION;ASSEMBLYVERSION=$env:ASSEMBLYVERSION" --no-restore --verbosity normal
 
       - name: Run .NET Project Unit Tests
+        if: ${{ !cancelled() && inputs.unitTests == 'true' }}
         run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION;FILEVERSION=$env:FILEVERSION;ASSEMBLYVERSION=$env:ASSEMBLYVERSION" --no-restore --no-build --verbosity normal
 
       - name: Publish NuGet Package
+        if: ${{ !cancelled() && inputs.publish == 'true' }}
         run: nuget push **\*.nupkg -Source "https://api.nuget.org/v3/index.json" -ApiKey "${{secrets.NUGET_API_KEY}}" -SkipDuplicate
 
       - name: Update build number variable
