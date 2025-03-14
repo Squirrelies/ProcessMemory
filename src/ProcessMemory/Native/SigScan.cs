@@ -32,13 +32,6 @@ namespace ProcessMemory.Native
 #elif x86
         [DllImport("ProcessMemory.Native.32.dll", SetLastError = true)]
 #endif
-        public static extern SIGSCAN_RESULTS_T signature_scan_default(IntPtr processHandle, string pattern);
-
-#if x64
-        [DllImport("ProcessMemory.Native.64.dll", SetLastError = true)]
-#elif x86
-        [DllImport("ProcessMemory.Native.32.dll", SetLastError = true)]
-#endif
         public static extern void free_sigscan_results(SIGSCAN_RESULTS_T *results);
     }
 }
