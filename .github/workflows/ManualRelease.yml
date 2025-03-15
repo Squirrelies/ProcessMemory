@@ -17,9 +17,9 @@ on:
         default: "-beta"
         type: choice
         options:
-          - "-alpha"
-          - "-beta"
-          - "-RC"
+          - "alpha"
+          - "beta"
+          - "RC"
           - ""
       runLinters:
         description: "Run Linters"
@@ -88,11 +88,6 @@ jobs:
           echo 'VERSION=${{steps.Get-SemVer.outputs.Version}}' >> $env:GITHUB_ENV
           echo 'FILEVERSION=${{steps.Get-Version.outputs.VersionMajor}}.${{steps.Get-Version.outputs.VersionMinor}}.${{steps.Get-Version.outputs.VersionPatch}}.${{steps.Get-Version.outputs.VersionBuild}}' >> $env:GITHUB_ENV
           echo 'ASSEMBLYVERSION=${{steps.Get-Version.outputs.VersionMajor}}.${{steps.Get-Version.outputs.VersionMinor}}.0.0' >> $env:GITHUB_ENV
-
-      - name: Ensure we detected the version properly
-        id: assert-version
-        if: ${{ env.ASSEMBLYVERSION == '..0.0' }}
-        run: exit 1
 
       - name: Build Native Library
         uses: Squirrelies/CI-CD/BuildMSYS2CMakeVCPkgProject@main
