@@ -14,12 +14,12 @@ on:
       releaseTypeTag: # Use -alpha, -beta, or -rc for pre-release. An empty string for stable.
         description: "Release type tag"
         required: true
-        default: "-beta"
+        default: "beta"
         type: choice
         options:
-          - "-alpha"
-          - "-beta"
-          - "-RC"
+          - "alpha"
+          - "beta"
+          - "RC"
           - ""
       runLinters:
         description: "Run Linters"
@@ -30,6 +30,11 @@ on:
         description: "Run Unit Tests"
         required: false
         default: false
+        type: boolean
+      publish:
+        description: "Publish to NuGet"
+        required: true
+        default: true
         type: boolean
 
 jobs:
@@ -46,7 +51,6 @@ jobs:
       BUILD_PLATFORM: ${{matrix.BUILD_PLATFORM}}
       SOLUTION: ProcessMemory.sln
       CSPROJECT: src/ProcessMemory/ProcessMemory.csproj
-      VERSION: 0.1.0
 
     steps:
       - name: Checkout
@@ -55,24 +59,47 @@ jobs:
           fetch-depth: 0
           ref: ${{github.ref}}
 
-      - name: Get C# project version
-        uses: Squirrelies/CI-CD/GetCSProjVersion@main
-        id: Get-CSProj-Version
+      - name: Read and process version.txt
+        id: Get-Version
+        run: |
+          $baseVersion = (Get-Content "version.txt" -Raw).Split('.')
+          $versionBuild = (${{vars.BUILD_NUMBER}} + 1)
+
+          "VersionMajor=$($baseVersion[0])" >> $env:GITHUB_OUTPUT
+          "VersionMinor=$($baseVersion[1])" >> $env:GITHUB_OUTPUT
+          "VersionPatch=$($baseVersion[2])" >> $env:GITHUB_OUTPUT
+          "VersionBuild=$versionBuild" >> $env:GITHUB_OUTPUT
+          "VersionPreRelease=${{inputs.releaseTypeTag}}" >> $env:GITHUB_OUTPUT
+          "VersionCommitHash=$(("${{github.sha}}".substring(0, 7)))" >> $env:GITHUB_OUTPUT
+
+      - name: Get SemVer
+        uses: Squirrelies/CI-CD/GetSemVerString@main
+        id: Get-SemVer
         with:
-          repository: ${{github.repository}}
-          ref: ${{github.ref}}
-          csproj-path: ${{env.CSPROJECT}}
+          versionMajor: ${{steps.Get-Version.outputs.VersionMajor}}
+          versionMinor: ${{steps.Get-Version.outputs.VersionMinor}}
+          versionPatch: ${{steps.Get-Version.outputs.VersionPatch}}
+          preRelease: ${{steps.Get-Version.outputs.VersionPreRelease}}
+          versionBuild: ${{steps.Get-Version.outputs.VersionBuild}}
+          commitHash: ${{steps.Get-Version.outputs.VersionCommitHash}}
 
-      - name: Get UTC DateTime
-        uses: Squirrelies/CI-CD/GetUTCDateTime@main
-        id: Get-UTC-DateTime
-
-      - name: Set VERSION environment variable
-        run: echo 'VERSION=${{steps.Get-CSProj-Version.outputs.Version}}${{inputs.releaseTypeTag}}.${{steps.Get-UTC-DateTime.outputs.UTC-DateTime}}' >> $env:GITHUB_ENV
+      - name: Set versioning environment variable
+        run: |
+          echo 'VERSION=${{steps.Get-SemVer.outputs.Version}}' >> $env:GITHUB_ENV
+          echo 'FILEVERSION=${{steps.Get-Version.outputs.VersionMajor}}.${{steps.Get-Version.outputs.VersionMinor}}.${{steps.Get-Version.outputs.VersionPatch}}.${{steps.Get-Version.outputs.VersionBuild}}' >> $env:GITHUB_ENV
+          echo 'ASSEMBLYVERSION=${{steps.Get-Version.outputs.VersionMajor}}.${{steps.Get-Version.outputs.VersionMinor}}.0.0' >> $env:GITHUB_ENV
 
       - name: Build Native Library
         uses: Squirrelies/CI-CD/BuildMSYS2CMakeVCPkgProject@main
         id: build-native-library
+        env:
+          RC_VERSION: ${{steps.Get-SemVer.outputs.Version}}
+          RC_VERSION_MAJOR: ${{steps.Get-Version.outputs.VersionMajor}}
+          RC_VERSION_MINOR: ${{steps.Get-Version.outputs.VersionMinor}}
+          RC_VERSION_PATCH: ${{steps.Get-Version.outputs.VersionPatch}}
+          RC_VERSION_BUILD: ${{steps.Get-Version.outputs.VersionBuild}}
+          RC_VERSION_PRERELEASE_TAG: ${{steps.Get-Version.outputs.VersionPreRelease}}
+          RC_VERSION_BUILD_HASH: ${{steps.Get-Version.outputs.VersionCommitHash}}
         with:
           root-path: ./src/ProcessMemoryNative
           msys2-msystem: ${{ matrix.BUILD_PLATFORM == 'x64' && 'clang64' || 'mingw32' }}
@@ -81,7 +108,7 @@ jobs:
           preset-configuration: ${{inputs.buildConfig}}
           preset-configuration-tidy: ${{ inputs.runLinters == true && format('{0}-Tidy', inputs.buildConfig) || ''}}
           run-unit-tests: ${{inputs.unitTests}}
-          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}}
+          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}} -DRC_VERSION=${{steps.Get-SemVer.outputs.Version}} -DRC_VERSION_MAJOR=${{steps.Get-Version.outputs.VersionMajor}} -DRC_VERSION_MINOR=${{steps.Get-Version.outputs.VersionMinor}} -DRC_VERSION_PATCH=${{steps.Get-Version.outputs.VersionPatch}} -DRC_VERSION_BUILD=${{steps.Get-Version.outputs.VersionBuild}} -DRC_VERSION_PRERELEASE_TAG=${{steps.Get-Version.outputs.VersionPreRelease}} -DRC_VERSION_BUILD_HASH=${{steps.Get-Version.outputs.VersionCommitHash}}
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
@@ -96,10 +123,28 @@ jobs:
         run: dotnet restore $env:SOLUTION --verbosity normal
 
       - name: Build .NET Project
-        run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION" --no-restore --verbosity normal
+        run: dotnet build $env:SOLUTION /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION;FILEVERSION=$env:FILEVERSION;ASSEMBLYVERSION=$env:ASSEMBLYVERSION" --no-restore --verbosity normal
 
       - name: Run .NET Project Unit Tests
-        run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION" --no-restore --no-build --verbosity normal
+        if: ${{ !cancelled() && inputs.unitTests == 'true' }}
+        run: dotnet test /p:"Configuration=${{inputs.buildConfig}};Platform=$env:BUILD_PLATFORM;VERSION=$env:VERSION;FILEVERSION=$env:FILEVERSION;ASSEMBLYVERSION=$env:ASSEMBLYVERSION" --no-restore --no-build --verbosity normal
 
       - name: Publish NuGet Package
+        if: ${{ !cancelled() && inputs.publish == 'true' }}
         run: nuget push **\*.nupkg -Source "https://api.nuget.org/v3/index.json" -ApiKey "${{secrets.NUGET_API_KEY}}" -SkipDuplicate
+
+      - name: Update build number variable
+        if: ${{ !cancelled() && inputs.publish == 'true' }} # Only update the build number if the NuGet package was published
+        env:
+          GH_TOKEN: ${{ secrets.GH_VARIABLE_RW_TOKEN }}
+        run: gh variable set BUILD_NUMBER -b${{ steps.Get-Version.outputs.VersionBuild }}
+
+      - name: Upload publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProcessMemory${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}_v${{env.VERSION}}
+          path: |
+            src/ProcessMemory/bin/${{env.BUILD_PLATFORM}}/${{inputs.buildConfig}}/netstandard2.1/ProcessMemory${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.dll
+            src/ProcessMemory/bin/${{env.BUILD_PLATFORM}}/${{inputs.buildConfig}}/netstandard2.1/ProcessMemory${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.pdb
+            src/ProcessMemoryNative/build/ProcessMemory.Native.${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.dll
+            src/ProcessMemoryNative/build/ProcessMemory.Native.${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.pdb
