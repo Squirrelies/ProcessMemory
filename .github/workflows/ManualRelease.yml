@@ -62,14 +62,14 @@ jobs:
       - name: Read and process version.txt
         id: Get-Version
         run: |
-          $baseVersion = (Get-Content "version.txt" -Raw).Trim('.')
+          $baseVersion = (Get-Content "version.txt" -Raw).Split('.')
           $versionBuild = $((${{ vars.BUILD_NUMBER }} + 1))
           echo "VersionMajor=$baseVersion[0]" | Set-Content $env:GITHUB_OUTPUT
           echo "VersionMinor=$baseVersion[1]" | Set-Content $env:GITHUB_OUTPUT
           echo "VersionPatch=$baseVersion[2]" | Set-Content $env:GITHUB_OUTPUT
           echo "VersionBuild=$versionBuild" | Set-Content $env:GITHUB_OUTPUT
           echo "VersionPreRelease=${{inputs.releaseTypeTag}}" | Set-Content $env:GITHUB_OUTPUT
-          echo "VersionCommitHash=$(("${{ github.sha }}".substring(0, 7)))" | Set-Content $env:GITHUB_OUTPUT
+          echo "VersionCommitHash=$(("${{ github.sha }}".Substring(0, 7)))" | Set-Content $env:GITHUB_OUTPUT
 
       - name: Get SemVer
         uses: Squirrelies/CI-CD/GetSemVerString@main
