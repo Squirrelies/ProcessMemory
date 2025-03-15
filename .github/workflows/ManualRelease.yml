@@ -63,6 +63,7 @@ jobs:
         id: Get-Version
         run: |
           $baseVersion = $(((Get-Content "version.txt" -Raw).Split('.')))
+          Write-Host $baseVersion
           $versionBuild = $((${{ vars.BUILD_NUMBER }} + 1))
           echo "VersionMajor=$($baseVersion[0])" | Set-Content $env:GITHUB_OUTPUT
           echo "VersionMinor=$($baseVersion[1])" | Set-Content $env:GITHUB_OUTPUT
