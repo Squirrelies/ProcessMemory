@@ -126,6 +126,17 @@ jobs:
         run: nuget push **\*.nupkg -Source "https://api.nuget.org/v3/index.json" -ApiKey "${{secrets.NUGET_API_KEY}}" -SkipDuplicate
 
       - name: Update build number variable
+        if: ${{ !cancelled() && inputs.publish == 'true' }} # Only update the build number if the NuGet package was published
         env:
           GH_TOKEN: ${{ secrets.GH_VARIABLE_RW_TOKEN }}
         run: gh variable set BUILD_NUMBER -b${{ steps.Get-Version.outputs.VersionBuild }}
+
+      - name: Upload publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProcessMemory${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}_v${{env.VERSION}}
+          path: |
+            src/ProcessMemory/bin/${{env.BUILD_PLATFORM}}/${{inputs.buildConfig}}/netstandard2.1/ProcessMemory${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.dll
+            src/ProcessMemory/bin/${{env.BUILD_PLATFORM}}/${{inputs.buildConfig}}/netstandard2.1/ProcessMemory${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.pdb
+            src/ProcessMemoryNative/build/ProcessMemory.Native.${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.dll
+            src/ProcessMemoryNative/build/ProcessMemory.Native.${{ env.BUILD_PLATFORM == 'x64' && '64' || '32'}}.pdb
