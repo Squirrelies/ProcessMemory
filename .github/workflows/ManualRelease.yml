@@ -92,6 +92,14 @@ jobs:
       - name: Build Native Library
         uses: Squirrelies/CI-CD/BuildMSYS2CMakeVCPkgProject@main
         id: build-native-library
+        env:
+          RC_VERSION: ${{steps.Get-SemVer.outputs.Version}}
+          RC_VERSION_MAJOR: ${{steps.Get-Version.outputs.VersionMajor}}
+          RC_VERSION_MINOR: ${{steps.Get-Version.outputs.VersionMinor}}
+          RC_VERSION_PATCH: ${{steps.Get-Version.outputs.VersionPatch}}
+          RC_VERSION_BUILD: ${{steps.Get-Version.outputs.VersionBuild}}
+          RC_VERSION_PRERELEASE_TAG: ${{steps.Get-Version.outputs.VersionPreRelease}}
+          RC_VERSION_BUILD_HASH: ${{steps.Get-Version.outputs.VersionCommitHash}}
         with:
           root-path: ./src/ProcessMemoryNative
           msys2-msystem: ${{ matrix.BUILD_PLATFORM == 'x64' && 'clang64' || 'mingw32' }}
@@ -100,7 +108,7 @@ jobs:
           preset-configuration: ${{inputs.buildConfig}}
           preset-configuration-tidy: ${{ inputs.runLinters == true && format('{0}-Tidy', inputs.buildConfig) || ''}}
           run-unit-tests: ${{inputs.unitTests}}
-          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}} -DRC_VERSION_MAJOR=${{steps.Get-Version.outputs.VersionMajor}} -DRC_VERSION_MINOR=${{steps.Get-Version.outputs.VersionMinor}} -DRC_VERSION_PATCH=${{steps.Get-Version.outputs.VersionPatch}} -DRC_VERSION_BUILD=${{steps.Get-Version.outputs.VersionBuild}} -DRC_VERSION_PRERELEASE_TAG=${{steps.Get-Version.outputs.VersionPreRelease}} -DRC_VERSION_BUILD_HASH=${{steps.Get-Version.outputs.VersionCommitHash}}
+          additional-cmake-args: -DARCH=${{matrix.BUILD_PLATFORM}} -DRC_VERSION=${{steps.Get-SemVer.outputs.Version}} -DRC_VERSION_MAJOR=${{steps.Get-Version.outputs.VersionMajor}} -DRC_VERSION_MINOR=${{steps.Get-Version.outputs.VersionMinor}} -DRC_VERSION_PATCH=${{steps.Get-Version.outputs.VersionPatch}} -DRC_VERSION_BUILD=${{steps.Get-Version.outputs.VersionBuild}} -DRC_VERSION_PRERELEASE_TAG=${{steps.Get-Version.outputs.VersionPreRelease}} -DRC_VERSION_BUILD_HASH=${{steps.Get-Version.outputs.VersionCommitHash}}
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
